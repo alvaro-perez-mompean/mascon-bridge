@@ -32,12 +32,24 @@ see a mascon. No keys, no counting presses, nothing to fall out of sync.
 Buttons and a hat can be mapped too, from the same device or a different one — useful
 when the lever and the buttons live on separate pieces of hardware.
 
+## Download
+
+Grab the latest zip from [Releases](https://github.com/alvaro-perez-mompean/mascon-bridge/releases),
+unzip it and run **`mascon-bridge.cmd`**.
+
+Nothing else to install: the .NET runtime is bundled and so is HIDMaestro, which
+installs its own driver the first time the bridge starts. That is what makes the
+download around 90 MB.
+
+To build from source instead, see below.
+
 ## Requirements
 
 - Windows 10 or 11 **x64**
-- **.NET 10 SDK** — <https://dotnet.microsoft.com/download>
 - Any joystick-class device with at least one analogue axis, visible in `joy.cpl`
 - Administrator rights (the driver install, and every run)
+- **.NET 10 SDK** to build from source — <https://dotnet.microsoft.com/download>.
+  Not needed if you use a release zip.
 
 No reboot, no Windows test signing mode and no kernel driver: HIDMaestro uses UMDF2,
 which runs in user mode.

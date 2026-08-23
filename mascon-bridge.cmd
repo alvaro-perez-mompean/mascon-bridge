@@ -17,7 +17,10 @@ if %errorlevel% neq 0 (
 
 cd /d "%~dp0"
 
-set "EXE=%~dp0bin\Release\net10.0-windows10.0.26100.0\win-x64\mascon-bridge.exe"
+rem Released builds sit next to this script; developer builds are under bin.
+set "EXE=%~dp0mascon-bridge.exe"
+if not exist "%EXE%" set "EXE=%~dp0bin\Release\net10.0-windows10.0.26100.0\win-x64\mascon-bridge.exe"
+
 if not exist "%EXE%" (
     echo ERROR: executable not found. Build it with: dotnet build -c Release
     pause

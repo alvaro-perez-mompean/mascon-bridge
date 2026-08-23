@@ -12,6 +12,10 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>mascon-bridge</AssemblyName>
     <RootNamespace>MasconBridge</RootNamespace>
+    <!-- Release builds override this from the git tag: -p:Version=1.2.3 -->
+    <Version>0.0.1</Version>
+    <Product>Mascon Bridge</Product>
+    <Description>Maps an analogue axis on any joystick or lever to a virtual ZUIKI One Handle MasCon.</Description>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <!-- Requests elevation: HIDMaestro needs admin to install and sign the driver -->
     <ApplicationManifest>app.manifest</ApplicationManifest>

@@ -1,0 +1,153 @@
+name: Release
+
+# Tagging v* publishes a ready to run build.
+#   git tag v0.0.1 && git push origin v0.0.1
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build, e.g. v0.0.1'
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  # Keep in step with ci.yml.
+  HIDMAESTRO_VERSION: v1.7.0
+  HIDMAESTRO_SHA256: A146AB8A46D2E9CE1FB2EA269FF231830607876F6F4DB7BB13CE891EF33DEECE
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.inputs.tag }}"
+          if (-not $tag) { $tag = "${{ github.ref_name }}" }
+          $version = $tag -replace '^v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+') {
+              throw "Tag '$tag' is not a version like v1.2.3"
+          }
+          "tag=$tag"          | Out-File $env:GITHUB_OUTPUT -Append
+          "version=$version"  | Out-File $env:GITHUB_OUTPUT -Append
+          Write-Host "Building $tag as version $version"
+
+      - name: Download HIDMaestro
+        shell: pwsh
+        run: |
+          $ver = $env:HIDMAESTRO_VERSION
+          $url = "https://github.com/hifihedgehog/HIDMaestro/releases/download/$ver/HIDMaestro-$ver.zip"
+          $zip = Join-Path $env:RUNNER_TEMP "HIDMaestro-$ver.zip"
+
+          Invoke-WebRequest -Uri $url -OutFile $zip
+
+          $actual = (Get-FileHash $zip -Algorithm SHA256).Hash
+          if ($actual -ne $env:HIDMAESTRO_SHA256) {
+              throw "SHA256 mismatch for $ver.`nExpected $env:HIDMAESTRO_SHA256`nGot      $actual"
+          }
+
+          # HIDMaestro is MIT licensed, so the binary may be redistributed as long
+          # as its notices travel with it. They are staged further down.
+          New-Item -ItemType Directory -Force -Path lib, third-party | Out-Null
+          Expand-Archive -Path $zip -DestinationPath $env:RUNNER_TEMP/hidmaestro -Force
+
+          $dll = Get-ChildItem $env:RUNNER_TEMP/hidmaestro -Recurse -Filter 'HIDMaestro.Core.dll' |
+                 Select-Object -First 1
+          if (-not $dll) { throw "HIDMaestro.Core.dll not found inside the archive" }
+          Copy-Item $dll.FullName lib/HIDMaestro.Core.dll -Force
+
+          Copy-Item "$env:RUNNER_TEMP/hidmaestro/LICENSE" `
+                    "third-party/HIDMaestro-LICENSE.txt" -Force
+          Copy-Item "$env:RUNNER_TEMP/hidmaestro/THIRD-PARTY-NOTICES.txt" `
+                    "third-party/HIDMaestro-THIRD-PARTY-NOTICES.txt" -Force
+
+      - name: Test
+        run: dotnet test mascon-bridge.slnx -c Release
+
+      - name: Publish
+        shell: pwsh
+        run: |
+          # Self contained: the people who download this should not need to install
+          # a .NET runtime first.
+          dotnet publish MasconBridge.csproj `
+              -c Release `
+              -r win-x64 `
+              --self-contained true `
+              -p:Version=${{ steps.version.outputs.version }} `
+              -p:DebugType=none `
+              -o publish
+
+      - name: Stage the package
+        shell: pwsh
+        run: |
+          $stage = "mascon-bridge-${{ steps.version.outputs.tag }}-win-x64"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+
+          Copy-Item publish/* $stage -Recurse -Force
+          Copy-Item mascon-bridge.cmd, README.md, LICENSE $stage -Force
+          Copy-Item third-party $stage/third-party -Recurse -Force
+
+          # config.json is generated on first run, so it must not ship.
+          Remove-Item "$stage/config.json" -ErrorAction SilentlyContinue
+
+          Compress-Archive -Path $stage -DestinationPath "$stage.zip" -Force
+
+          $hash = (Get-FileHash "$stage.zip" -Algorithm SHA256).Hash
+          $size = "{0:N1} MB" -f ((Get-Item "$stage.zip").Length / 1MB)
+          "zip=$stage.zip"   | Out-File $env:GITHUB_OUTPUT -Append
+          "sha256=$hash"     | Out-File $env:GITHUB_OUTPUT -Append
+          "size=$size"       | Out-File $env:GITHUB_OUTPUT -Append
+          Write-Host "$stage.zip  $size  SHA256 $hash"
+        id: package
+
+      - name: Publish the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $notes = @"
+## Install
+
+1. Download and unzip.
+2. Run **``mascon-bridge.cmd``** and accept the UAC prompt.
+
+Nothing else is needed: the .NET runtime is bundled, and so is HIDMaestro. The
+driver installs itself the first time the bridge starts.
+
+``config.json`` is written on first run. See the README for picking the device,
+the axis, and the mascon model.
+
+## Package
+
+| | |
+|---|---|
+| File | ``${{ steps.package.outputs.zip }}`` |
+| Size | ${{ steps.package.outputs.size }} |
+| SHA256 | ``${{ steps.package.outputs.sha256 }}`` |
+| HIDMaestro | ``$env:HIDMAESTRO_VERSION`` |
+
+Requires Windows 10 or 11 x64 and administrator rights.
+
+HIDMaestro is bundled under its MIT licence; its notices are in ``third-party/``.
+"@
+          $notes | Out-File notes.md -Encoding utf8
+
+          gh release create "${{ steps.version.outputs.tag }}" `
+              "${{ steps.package.outputs.zip }}" `
+              --repo "${{ github.repository }}" `
+              --title "${{ steps.version.outputs.tag }}" `
+              --notes-file notes.md

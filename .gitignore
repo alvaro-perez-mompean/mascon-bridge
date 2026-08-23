@@ -5,6 +5,12 @@ config.json
 bin/
 obj/
 
+# Staged by the release workflow
+publish/
+third-party/
+mascon-bridge-v*/
+mascon-bridge-v*.zip
+
 # Third party binary, ~40 MB. See lib/README.md
 lib/*.dll
 
