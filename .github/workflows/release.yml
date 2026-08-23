@@ -119,32 +119,35 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $notes = @"
-## Install
+          # Built as an array rather than a here-string: PowerShell wants the
+          # closing "@ in column 0, which would end the YAML block scalar.
+          $notes = @(
+            '## Install'
+            ''
+            '1. Download and unzip.'
+            '2. Run **`mascon-bridge.cmd`** and accept the UAC prompt.'
+            ''
+            'Nothing else is needed: the .NET runtime is bundled, and so is HIDMaestro.'
+            'The driver installs itself the first time the bridge starts.'
+            ''
+            '`config.json` is written on first run. See the README for picking the'
+            'device, the axis, and the mascon model.'
+            ''
+            '## Package'
+            ''
+            '| | |'
+            '|---|---|'
+            '| File | `${{ steps.package.outputs.zip }}` |'
+            '| Size | ${{ steps.package.outputs.size }} |'
+            '| SHA256 | `${{ steps.package.outputs.sha256 }}` |'
+            '| HIDMaestro | `${{ env.HIDMAESTRO_VERSION }}` |'
+            ''
+            'Requires Windows 10 or 11 x64 and administrator rights.'
+            ''
+            'HIDMaestro is bundled under its MIT licence; its notices are in `third-party/`.'
+          ) -join "`n"
 
-1. Download and unzip.
-2. Run **``mascon-bridge.cmd``** and accept the UAC prompt.
-
-Nothing else is needed: the .NET runtime is bundled, and so is HIDMaestro. The
-driver installs itself the first time the bridge starts.
-
-``config.json`` is written on first run. See the README for picking the device,
-the axis, and the mascon model.
-
-## Package
-
-| | |
-|---|---|
-| File | ``${{ steps.package.outputs.zip }}`` |
-| Size | ${{ steps.package.outputs.size }} |
-| SHA256 | ``${{ steps.package.outputs.sha256 }}`` |
-| HIDMaestro | ``$env:HIDMAESTRO_VERSION`` |
-
-Requires Windows 10 or 11 x64 and administrator rights.
-
-HIDMaestro is bundled under its MIT licence; its notices are in ``third-party/``.
-"@
-          $notes | Out-File notes.md -Encoding utf8
+          Set-Content -Path notes.md -Value $notes -Encoding utf8
 
           gh release create "${{ steps.version.outputs.tag }}" `
               "${{ steps.package.outputs.zip }}" `
