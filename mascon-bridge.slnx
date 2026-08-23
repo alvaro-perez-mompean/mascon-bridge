@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/MasconBridge.Tests/MasconBridge.Tests.csproj" />
+  </Folder>
+  <Project Path="MasconBridge.csproj" />
+</Solution>

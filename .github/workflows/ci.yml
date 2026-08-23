@@ -1,0 +1,83 @@
+name: CI
+
+# Runs on every branch, not just the default one.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+# A new push to the same branch supersedes the run in flight.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # HIDMaestro is a third party binary of about 40 MB, so it is not committed.
+  # Pinned rather than tracking "latest": HIDMaestro has broken its API between
+  # releases before, and this project is verified against this one.
+  #
+  # To bump it, change both values. The hash is of the release asset:
+  #   (Get-FileHash HIDMaestro-vX.Y.Z.zip -Algorithm SHA256).Hash
+  HIDMAESTRO_VERSION: v1.7.0
+  HIDMAESTRO_SHA256: A146AB8A46D2E9CE1FB2EA269FF231830607876F6F4DB7BB13CE891EF33DEECE
+
+jobs:
+  test:
+    # Windows only: the project targets net10.0-windows and uses Windows Forms.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache HIDMaestro.Core.dll
+        id: cache-hidmaestro
+        uses: actions/cache@v4
+        with:
+          path: lib/HIDMaestro.Core.dll
+          key: hidmaestro-${{ env.HIDMAESTRO_VERSION }}
+
+      - name: Download HIDMaestro
+        if: steps.cache-hidmaestro.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $ver = $env:HIDMAESTRO_VERSION
+          $url = "https://github.com/hifihedgehog/HIDMaestro/releases/download/$ver/HIDMaestro-$ver.zip"
+          $zip = Join-Path $env:RUNNER_TEMP "HIDMaestro-$ver.zip"
+
+          Write-Host "Downloading $url"
+          Invoke-WebRequest -Uri $url -OutFile $zip
+
+          $actual = (Get-FileHash $zip -Algorithm SHA256).Hash
+          if ($actual -ne $env:HIDMAESTRO_SHA256) {
+              throw "SHA256 mismatch for $ver.`nExpected $env:HIDMAESTRO_SHA256`nGot      $actual"
+          }
+          Write-Host "SHA256 verified"
+
+          New-Item -ItemType Directory -Force -Path lib | Out-Null
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
+          try {
+              $entry = $archive.Entries |
+                  Where-Object { $_.Name -eq 'HIDMaestro.Core.dll' } |
+                  Select-Object -First 1
+              if (-not $entry) { throw "HIDMaestro.Core.dll not found inside the archive" }
+
+              $target = Join-Path (Get-Location) 'lib\HIDMaestro.Core.dll'
+              [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $target, $true)
+              Write-Host "Extracted $($entry.FullName) -> lib\HIDMaestro.Core.dll"
+          }
+          finally { $archive.Dispose() }
+
+      - name: Restore
+        run: dotnet restore mascon-bridge.slnx
+
+      - name: Build
+        run: dotnet build mascon-bridge.slnx -c Release --no-restore
+
+      - name: Test
+        run: dotnet test mascon-bridge.slnx -c Release --no-build

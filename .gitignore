@@ -1,0 +1,20 @@
+# Generated on first run, and specific to each machine's hardware
+config.json
+
+# Build output
+bin/
+obj/
+
+# Third party binary, ~40 MB. See lib/README.md
+lib/*.dll
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+
+# Windows
+Thumbs.db
+desktop.ini

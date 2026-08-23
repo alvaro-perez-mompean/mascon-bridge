@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- HIDMaestro requires .NET 10 and Windows 10/11 x64 -->
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Exe, not WinExe, so the console modes keep their output. The console
+         window is hidden when the graphical interface opens. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>mascon-bridge</AssemblyName>
+    <RootNamespace>MasconBridge</RootNamespace>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <!-- Requests elevation: HIDMaestro needs admin to install and sign the driver -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- This project sits at the repository root, so its default glob would other-
+         wise compile the test project's sources as well. -->
+    <Compile Remove="tests\**" />
+    <None Remove="tests\**" />
+    <EmbeddedResource Remove="tests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copy HIDMaestro.Core.dll here from the HIDMaestro release -->
+    <Reference Include="HIDMaestro.Core">
+      <HintPath>lib\HIDMaestro.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

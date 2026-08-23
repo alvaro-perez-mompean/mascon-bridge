@@ -1,0 +1,14 @@
+{
+  "id": "zuiki-one-handle-mascon",
+  "name": "ZUIKI One Handle MasCon (ZKNS-001)",
+  "vendor": "ZUIKI",
+  "vid": "0x0F0D",
+  "pid": "0x00C1",
+  "productString": "One Handle MasCon for Nintendo Switch",
+  "manufacturerString": "ZUIKI",
+  "type": "other",
+  "connection": "usb",
+  "inputReportSize": 8,
+  "descriptor": "05010905A10115002501350045017501950E05091901290E81029502810105012507463B017504950165140939814265009501810126FF0046FF0009300931093209357508950481027508950181010A4F4875089508B1020A4F489102C0",
+  "notes": "94 byte descriptor documented at traincontrollerdb.marcriera.cat. Y axis is the brake/power handle, 15 discrete notches from 0x00 (EB) to 0xFF (P5)."
+}
