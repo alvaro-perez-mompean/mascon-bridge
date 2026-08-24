@@ -165,10 +165,13 @@ public class NotchCatchTests
         Assert.True(c.Held);
     }
 
+    // Named directly rather than through Both: this one needs the catch and nothing
+    // else, and taking the other two columns only to ignore them is what the analyser
+    // rightly complains about.
     [Theory]
-    [MemberData(nameof(Both))]
-    public void Every_notch_is_reachable_while_the_button_is_pressed(
-        string which, string _, string __)
+    [InlineData("power")]
+    [InlineData("emergency")]
+    public void Every_notch_is_reachable_while_the_button_is_pressed(string which)
     {
         var c = Make(which);
 
