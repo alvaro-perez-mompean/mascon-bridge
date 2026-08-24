@@ -5,6 +5,9 @@ config.json
 bin/
 obj/
 
+# Rendered from assets/icon.svg for review
+assets/preview/
+
 # Staged by the release workflow
 publish/
 third-party/

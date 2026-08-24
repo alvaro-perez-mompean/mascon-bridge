@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>mascon-bridge</title>
+
+  <!-- ZUIKI One Handle MasCon seen from above: lever on the left, the notch
+       scale beside it, button cluster on the right.
+       The scale is what people recognise, so it holds the only saturated colour:
+       red for the brake side, green for N, blue for power. Tick marks sit beside
+       the colour rather than across it, as on the device, and everything stays
+       heavy enough to read at 16x16. -->
+
+  <rect width="256" height="256" rx="56" fill="#222227"/>
+
+  <!-- Notch scale -->
+  <rect x="92" y="36" width="56" height="184" rx="14" fill="#0D0D10"/>
+
+  <rect x="100" y="46" width="14" height="74" rx="6" fill="#E2453F"/>
+  <rect x="100" y="124" width="14" height="18" rx="6" fill="#35C26A"/>
+  <rect x="100" y="146" width="14" height="64" rx="6" fill="#3D82D8"/>
+
+  <g fill="#C9D2DC">
+    <rect x="120" y="52"  width="20" height="4" rx="2"/>
+    <rect x="120" y="68"  width="20" height="4" rx="2"/>
+    <rect x="120" y="84"  width="20" height="4" rx="2"/>
+    <rect x="120" y="100" width="20" height="4" rx="2"/>
+    <rect x="120" y="131" width="20" height="4" rx="2"/>
+    <rect x="120" y="158" width="20" height="4" rx="2"/>
+    <rect x="120" y="174" width="20" height="4" rx="2"/>
+    <rect x="120" y="190" width="20" height="4" rx="2"/>
+  </g>
+
+  <!-- Lever from above, parked at neutral, with its pivot -->
+  <rect x="26" y="102" width="56" height="62" rx="18" fill="#EEF2F7"/>
+  <rect x="78" y="122" width="22" height="22" rx="8" fill="#9BA6B4"/>
+
+  <!-- Button cluster -->
+  <g fill="#5A5A63">
+    <circle cx="176" cy="80"  r="14"/>
+    <circle cx="222" cy="80"  r="14"/>
+    <circle cx="176" cy="128" r="14"/>
+    <circle cx="222" cy="128" r="14"/>
+    <circle cx="176" cy="176" r="14"/>
+    <circle cx="222" cy="176" r="14"/>
+  </g>
+</svg>

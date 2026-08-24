@@ -1,6 +1,18 @@
-# mascon-bridge — any analogue lever as a virtual ZUIKI mascon
+<p align="center">
+  <img src="assets/icon-256.png" alt="" width="132" height="132">
+</p>
 
-[![CI](https://github.com/alvaro-perez-mompean/mascon-bridge/actions/workflows/ci.yml/badge.svg)](https://github.com/alvaro-perez-mompean/mascon-bridge/actions/workflows/ci.yml)
+<h1 align="center">mascon-bridge</h1>
+
+<p align="center">
+  <strong>Any analogue lever as a virtual ZUIKI mascon</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/alvaro-perez-mompean/mascon-bridge/actions/workflows/ci.yml"><img src="https://github.com/alvaro-perez-mompean/mascon-bridge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/alvaro-perez-mompean/mascon-bridge/releases/latest"><img src="https://img.shields.io/github/v/release/alvaro-perez-mompean/mascon-bridge" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue" alt="MIT licence"></a>
+</p>
 
 Maps an analogue axis on any joystick, throttle or lever to a virtual **ZUIKI One
 Handle MasCon**, so that JR EAST Train Simulator reads the **absolute position** of
@@ -206,6 +218,7 @@ the driver with competitive titles that ship kernel level anti-cheat.
 | `mascon-bridge.cmd` | Elevates and opens the control panel |
 | `try-model.ps1` | Switches `"Model"` and relaunches, to work through the six models |
 | `tests/` | xUnit suite over the hardware-independent logic |
+| `assets/` | `icon.svg` is the icon source; `build-icon.py` rasterises it into `mascon-bridge.ico` |
 
 ## License
 

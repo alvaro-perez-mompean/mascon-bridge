@@ -19,6 +19,9 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <!-- Requests elevation: HIDMaestro needs admin to install and sign the driver -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Committed because the build should not need Python and cairo.
+         Regenerate from assets/icon.svg with: python assets/build-icon.py -->
+    <ApplicationIcon>mascon-bridge.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
