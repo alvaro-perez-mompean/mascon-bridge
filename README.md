@@ -126,6 +126,7 @@ panel:
   bridge; see below.
 - **Start bridge**, then launch Steam and the game, in that order — the game enumerates
   controllers at startup.
+- **Language**, at the top of the window. See below.
 
 In the game's Steam properties, **leave Steam Input enabled**. Unlike the official JR
 East controller, the ZUIKI mascon needs it.
@@ -137,6 +138,17 @@ Buttons and the hat are configured in `config.json`. Each entry names a physical
 and button number and the mascon button it maps to (`Y`, `B`, `A`, `X`, `L`, `R`, `ZL`,
 `ZR`, `Minus`, `Plus`, `Home`, `Capture`, or `EB` for the emergency brake). Several
 physical buttons may map to the same mascon button.
+
+### Language
+
+The program speaks **Japanese by default**, and English if you pick it from the
+selector at the top of the window. The choice is remembered in `config.json` as
+`"Language": "ja"` or `"en"`, and the window reopens in the new language straight
+away.
+
+Everything is translated: the window, the dialogs and the console modes. Language
+names are always written in their own language, so the list is readable whichever
+one the program happens to be in.
 
 ### Console modes
 
@@ -155,7 +167,7 @@ mascon-bridge.exe run        normal mode, no window
 dotnet test mascon-bridge.slnx
 ```
 
-110 tests over the parts that can be checked without hardware: the notch table and
+126 tests over the parts that can be checked without hardware: the notch table and
 report packing, the axis maths and hysteresis, configuration round trips and model
 resolution, and the winmm helpers for hat and buttons. Device enumeration and the
 HIDMaestro calls need real hardware and are left out.
@@ -239,7 +251,9 @@ the driver with competitive titles that ship kernel level anti-cheat.
 | `mascon-bridge.cmd` | Convenience launcher for a source tree: elevates, then opens the executable from under `bin\`. Not needed with a release, where the executable is right there |
 | `try-model.ps1` | Switches `"Model"` and relaunches, to work through the six models |
 | `tests/` | xUnit suite over the hardware-independent logic |
-| `assets/` | `icon.svg` is the icon source; `build-icon.py` rasterises it into `mascon-bridge.ico` |
+| `Strings.*.resx` / `Strings.cs` | Every piece of text the program shows, and the typed accessor for it |
+| `Language.cs` | Which languages ship, and applying one |
+| `assets/` | `icon.svg` is the icon source; `build-icon.py` rasterises it into `mascon-bridge.ico`. `gen-strings.py` regenerates the resources and `Strings.cs` from one table |
 
 ## License
 

@@ -21,20 +21,25 @@ public sealed class MainForm : Form
         public override string ToString() => Text;
     }
 
+    private sealed record LanguageItem(string Code, string Display)
+    {
+        public override string ToString() => Display;
+    }
+
     private readonly ComboBox _cboDevice = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly ComboBox _cboAxis = new() { DropDownStyle = ComboBoxStyle.DropDownList };
-    private readonly Button _btnRefresh = new() { Text = "Refresh", AutoSize = true };
+    private readonly Button _btnRefresh = new() { Text = Strings.ButtonRefresh, AutoSize = true };
 
     private readonly Label[] _axisValue = new Label[Joystick.AxisNames.Length];
     private readonly ProgressBar[] _axisBar = new ProgressBar[Joystick.AxisNames.Length];
 
     private readonly Label _lblMin = new() { AutoSize = true };
     private readonly Label _lblMax = new() { AutoSize = true };
-    private readonly Button _btnCalibrate = new() { Text = "Calibrate", AutoSize = true };
-    private readonly CheckBox _chkInvert = new() { Text = "Invert axis", AutoSize = true };
+    private readonly Button _btnCalibrate = new() { Text = Strings.ButtonCalibrate, AutoSize = true };
+    private readonly CheckBox _chkInvert = new() { Text = Strings.CheckInvertAxis, AutoSize = true };
     private readonly CheckBox _chkEbInAxis = new()
     {
-        Text = "EB on the handle (15 notches instead of 14)", AutoSize = true,
+        Text = Strings.CheckEbOnHandle, AutoSize = true,
     };
     private readonly NumericUpDown _numHyst = new()
     {
@@ -42,6 +47,7 @@ public sealed class MainForm : Form
     };
 
     private readonly ComboBox _cboModel = new() { DropDownStyle = ComboBoxStyle.DropDownList };
+    private readonly ComboBox _cboLanguage = new() { DropDownStyle = ComboBoxStyle.DropDownList };
 
     private readonly Label _lblNotch = new() { AutoSize = true };
     private readonly Label _lblRaw = new() { AutoSize = true, ForeColor = SystemColors.GrayText };
@@ -50,9 +56,9 @@ public sealed class MainForm : Form
         Minimum = 0, Maximum = 14, Height = 20, MinimumSize = new Size(300, 20),
     };
 
-    private readonly Button _btnStartStop = new() { Text = "Start bridge", AutoSize = true };
-    private readonly Button _btnSave = new() { Text = "Save configuration", AutoSize = true };
-    private readonly Label _lblStatus = new() { AutoSize = true, Text = "Stopped" };
+    private readonly Button _btnStartStop = new() { Text = Strings.ButtonStartBridge, AutoSize = true };
+    private readonly Button _btnSave = new() { Text = Strings.ButtonSaveConfiguration, AutoSize = true };
+    private readonly Label _lblStatus = new() { AutoSize = true, Text = Strings.StatusStopped };
     private readonly Label _lblPath = new() { AutoSize = true, ForeColor = SystemColors.GrayText };
 
     // Explanatory labels. Their width is capped in OnLoad so that a long line
@@ -67,6 +73,10 @@ public sealed class MainForm : Form
     private readonly Config _cfg;
     private BridgeRunner? _runner;
 
+    /// <summary>Set when the window closed only so it can reopen in another language.</summary>
+    public bool LanguageChanged { get; private set; }
+
+    private bool _suppressLanguageEvent;
     private bool _calibrating;
     private int _calMin = int.MaxValue;
     private int _calMax = int.MinValue;
@@ -145,6 +155,36 @@ public sealed class MainForm : Form
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         _root = root;
 
+        // --- Language, first thing in the window -------------------------------
+        foreach (var (code, display) in Language.Supported)
+            _cboLanguage.Items.Add(new LanguageItem(code, display));
+        _cboLanguage.Anchor = AnchorStyles.Left;
+        _cboLanguage.Margin = new Padding(3, 3, 12, 3);
+        _cboLanguage.SelectedIndexChanged += OnLanguageChanged;
+
+        var langRow = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            FlowDirection = FlowDirection.LeftToRight,
+            WrapContents = false,
+            Margin = new Padding(14, 8, 14, 2),
+        };
+        langRow.Controls.Add(Cap(Strings.LabelLanguage));
+        langRow.Controls.Add(_cboLanguage);
+
+        var langHint = new Label
+        {
+            Text = Strings.HintLanguageRestart,
+            AutoSize = true,
+            ForeColor = SystemColors.GrayText,
+            Margin = new Padding(3, 7, 3, 3),
+        };
+        _hints.Add(langHint);
+        langRow.Controls.Add(langHint);
+
+        root.Controls.Add(langRow);
+
         // --- Device and axis ---------------------------------------------------
         var gd = Grid(4);
         gd.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
@@ -158,7 +198,7 @@ public sealed class MainForm : Form
 
         _btnRefresh.Click += (_, _) => LoadDevices();
 
-        gd.Controls.Add(Cap("Device:"), 0, 0);
+        gd.Controls.Add(Cap(Strings.LabelDevice), 0, 0);
         gd.Controls.Add(_cboDevice, 1, 0);
         gd.SetColumnSpan(_cboDevice, 2);
         gd.Controls.Add(_btnRefresh, 3, 0);
@@ -170,7 +210,7 @@ public sealed class MainForm : Form
 
         var hint = new Label
         {
-            Text = "Move the handle and watch which of the six responds.",
+            Text = Strings.HintAxis,
             AutoSize = true,
             Anchor = AnchorStyles.Left,
             ForeColor = SystemColors.GrayText,
@@ -178,7 +218,7 @@ public sealed class MainForm : Form
         };
         _hints.Add(hint);
 
-        gd.Controls.Add(Cap("Axis:"), 0, 1);
+        gd.Controls.Add(Cap(Strings.LabelAxis), 0, 1);
         gd.Controls.Add(_cboAxis, 1, 1);
         gd.Controls.Add(hint, 2, 1);
         gd.SetColumnSpan(hint, 2);
@@ -233,7 +273,7 @@ public sealed class MainForm : Form
         gd.Controls.Add(axes, 0, 2);
         gd.SetColumnSpan(axes, 4);
 
-        root.Controls.Add(Group("Device and axis", gd));
+        root.Controls.Add(Group(Strings.GroupDeviceAndAxis, gd));
 
         // --- Calibration -------------------------------------------------------
         var gc = Grid(5);
@@ -247,9 +287,9 @@ public sealed class MainForm : Form
         _lblMin.Margin = new Padding(3, 6, 24, 6);
         _lblMax.Margin = new Padding(3, 6, 12, 6);
 
-        gc.Controls.Add(Cap("Minimum:"), 0, 0);
+        gc.Controls.Add(Cap(Strings.LabelMinimum), 0, 0);
         gc.Controls.Add(_lblMin, 1, 0);
-        gc.Controls.Add(Cap("Maximum:"), 2, 0);
+        gc.Controls.Add(Cap(Strings.LabelMaximum), 2, 0);
         gc.Controls.Add(_lblMax, 3, 0);
         gc.Controls.Add(_btnCalibrate, 4, 0);
 
@@ -267,12 +307,12 @@ public sealed class MainForm : Form
         _numHyst.Anchor = AnchorStyles.Left;
         _numHyst.Margin = new Padding(3, 8, 3, 3);
 
-        var capHyst = Cap("Hysteresis:");
+        var capHyst = Cap(Strings.LabelHysteresis);
         capHyst.Margin = new Padding(3, 12, 8, 6);
         gc.Controls.Add(capHyst, 0, 3);
         gc.Controls.Add(_numHyst, 1, 3);
 
-        root.Controls.Add(Group("Calibration", gc));
+        root.Controls.Add(Group(Strings.GroupCalibration, gc));
 
         // --- Virtual device ----------------------------------------------------
         // Both columns AutoSize: a control spanning into a Percent column is not
@@ -289,13 +329,12 @@ public sealed class MainForm : Form
         _cboModel.Margin = new Padding(3, 3, 12, 3);
         _cboModel.SelectedIndexChanged += (_, _) => _cfg.Model = SelectedModel();
 
-        gm.Controls.Add(Cap("Model:"), 0, 0);
+        gm.Controls.Add(Cap(Strings.LabelModel), 0, 0);
         gm.Controls.Add(_cboModel, 1, 0);
 
         var modelHint = new Label
         {
-            Text = $"{Zuiki.DefaultModel} is the default controller.\n"
-                 + "Only change this if the game ignores the mascon.",
+            Text = string.Format(Strings.HintModel, Zuiki.DefaultModel),
             AutoSize = true,
             ForeColor = SystemColors.GrayText,
             Margin = new Padding(3, 8, 3, 3),
@@ -304,7 +343,7 @@ public sealed class MainForm : Form
         gm.Controls.Add(modelHint, 0, 1);
         gm.SetColumnSpan(modelHint, 2);
 
-        root.Controls.Add(Group("Virtual device", gm));
+        root.Controls.Add(Group(Strings.GroupVirtualDevice, gm));
 
         // --- Current notch -----------------------------------------------------
         var gr = Grid(1);
@@ -321,7 +360,7 @@ public sealed class MainForm : Form
         _barNotch.Dock = DockStyle.Fill;
         gr.Controls.Add(_barNotch, 0, 2);
 
-        root.Controls.Add(Group("Current notch", gr));
+        root.Controls.Add(Group(Strings.GroupCurrentNotch, gr));
 
         // --- Actions -----------------------------------------------------------
         var ga = new TableLayoutPanel
@@ -368,13 +407,14 @@ public sealed class MainForm : Form
         {
             // szPname is usually "Microsoft PC-joystick driver" on every device, so
             // it identifies nothing. VID/PID and the axis count do.
-            string text = $"{id} - {caps.wMid:X4}:{caps.wPid:X4} - {caps.wNumAxes} axes, {caps.wNumButtons} buttons";
+            string text = string.Format(Strings.DeviceItem,
+                id, $"{caps.wMid:X4}:{caps.wPid:X4}", caps.wNumAxes, caps.wNumButtons);
             _cboDevice.Items.Add(new DeviceItem(id, text));
         }
 
         if (_cboDevice.Items.Count == 0)
         {
-            _lblStatus.Text = "No joystick detected";
+            _lblStatus.Text = Strings.StatusNoJoystick;
             return;
         }
 
@@ -425,12 +465,22 @@ public sealed class MainForm : Form
 
         SelectModel(_cfg.Model);
 
+        _suppressLanguageEvent = true;
+        for (int i = 0; i < _cboLanguage.Items.Count; i++)
+            if (_cboLanguage.Items[i] is LanguageItem l
+                && l.Code == Language.Normalise(_cfg.Language))
+            {
+                _cboLanguage.SelectedIndex = i;
+                break;
+            }
+        _suppressLanguageEvent = false;
+
         _lblMin.Text = _cfg.AxisMin.ToString();
         _lblMax.Text = _cfg.AxisMax.ToString();
         _chkInvert.Checked = _cfg.Invert;
         _chkEbInAxis.Checked = _cfg.IncludeEmergencyInAxis;
         _numHyst.Value = (decimal)Math.Clamp(_cfg.Hysteresis, 0, 0.49);
-        _lblPath.Text = $"Buttons and hat are edited in the file\n{_configPath}";
+        _lblPath.Text = string.Format(Strings.HintButtonsInFile, _configPath);
     }
 
     private void UiToConfig()
@@ -482,7 +532,7 @@ public sealed class MainForm : Form
         {
             var s = _runner.State;
             _lblNotch.Text = $"{s.NotchName}   0x{s.NotchValue:X2}";
-            _lblRaw.Text = $"axis {s.RawAxis}   ·   {s.Fraction * 100:F1}% of travel   ·   sending to the game";
+            _lblRaw.Text = string.Format(Strings.NotchSending, s.RawAxis, s.Fraction * 100);
             _barNotch.Maximum = Zuiki.Notches.Length - 1;
             _barNotch.Value = Math.Clamp(s.NotchIndex, 0, _barNotch.Maximum);
             return;
@@ -491,7 +541,7 @@ public sealed class MainForm : Form
         if (raw < 0)
         {
             _lblNotch.Text = "--";
-            _lblRaw.Text = "the selected axis does not exist on this device";
+            _lblRaw.Text = Strings.NotchAxisMissing;
             return;
         }
 
@@ -506,7 +556,7 @@ public sealed class MainForm : Form
         var (name, value) = Zuiki.Notches[idx];
 
         _lblNotch.Text = $"{name}   0x{value:X2}";
-        _lblRaw.Text = $"axis {raw}   ·   {p * 100:F1}% of travel   ·   preview, the bridge is stopped";
+        _lblRaw.Text = string.Format(Strings.NotchPreview, raw, p * 100);
         _barNotch.Maximum = Zuiki.Notches.Length - 1;
         _barNotch.Value = Math.Clamp(idx, 0, _barNotch.Maximum);
     }
@@ -519,22 +569,20 @@ public sealed class MainForm : Form
             _calibrating = true;
             _calMin = int.MaxValue;
             _calMax = int.MinValue;
-            _btnCalibrate.Text = "Finish";
-            _lblStatus.Text = "Calibrating: move the handle end to end";
+            _btnCalibrate.Text = Strings.ButtonCalibrateFinish;
+            _lblStatus.Text = Strings.StatusCalibrating;
             return;
         }
 
         _calibrating = false;
-        _btnCalibrate.Text = "Calibrate";
+        _btnCalibrate.Text = Strings.ButtonCalibrate;
 
         if (_calMin >= _calMax)
         {
-            _lblStatus.Text = "No movement seen";
+            _lblStatus.Text = Strings.StatusNoMovement;
             MessageBox.Show(this,
-                "No movement was seen on the selected axis.\n\n" +
-                "Check the device and the axis: move the handle and watch which of " +
-                "the six values changes.",
-                "Calibration", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Strings.DialogCalibrationNoMovement,
+                Strings.DialogCalibrationTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
             ConfigToUi();
             return;
         }
@@ -543,7 +591,7 @@ public sealed class MainForm : Form
         _cfg.AxisMax = _calMax;
         _lblMin.Text = _calMin.ToString();
         _lblMax.Text = _calMax.ToString();
-        _lblStatus.Text = _runner is { IsRunning: true } ? "Bridge running" : "Stopped";
+        _lblStatus.Text = _runner is { IsRunning: true } ? Strings.StatusBridgeRunning : Strings.StatusStopped;
         _previewZone = 0;
     }
 
@@ -556,8 +604,8 @@ public sealed class MainForm : Form
             _runner = null;
 
             SetEditingEnabled(true);
-            _btnStartStop.Text = "Start bridge";
-            _lblStatus.Text = "Stopped";
+            _btnStartStop.Text = Strings.ButtonStartBridge;
+            _lblStatus.Text = Strings.StatusStopped;
             _previewZone = 0;
             return;
         }
@@ -574,10 +622,9 @@ public sealed class MainForm : Form
         {
             _runner = null;
             MessageBox.Show(this,
-                $"Could not create the virtual mascon.\n\n{ex.GetType().Name}: {ex.Message}\n\n" +
-                "If this is a permissions problem, run the program as administrator.",
-                "Start bridge", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            _lblStatus.Text = "Failed to start";
+                string.Format(Strings.DialogStartFailed, ex.GetType().Name, ex.Message),
+                Strings.DialogStartTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            _lblStatus.Text = Strings.StatusFailedToStart;
             return;
         }
         finally
@@ -586,8 +633,8 @@ public sealed class MainForm : Form
         }
 
         SetEditingEnabled(false);
-        _btnStartStop.Text = "Stop bridge";
-        _lblStatus.Text = "Bridge running";
+        _btnStartStop.Text = Strings.ButtonStopBridge;
+        _lblStatus.Text = Strings.StatusBridgeRunning;
     }
 
     private void SetEditingEnabled(bool on)
@@ -597,11 +644,36 @@ public sealed class MainForm : Form
         _cboDevice.Enabled = on;
         _cboAxis.Enabled = on;
         _cboModel.Enabled = on;
+        _cboLanguage.Enabled = on;
         _btnRefresh.Enabled = on;
         _btnCalibrate.Enabled = on;
         _chkInvert.Enabled = on;
         _chkEbInAxis.Enabled = on;
         _numHyst.Enabled = on;
+    }
+
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        // ConfigToUi sets the selection while loading; that is not the user choosing.
+        if (_suppressLanguageEvent) return;
+        if (_cboLanguage.SelectedItem is not LanguageItem chosen) return;
+        if (chosen.Code == Language.Normalise(_cfg.Language)) return;
+
+        UiToConfig();
+        _cfg.Language = chosen.Code;
+
+        // Saved before reopening: the new window reads the language back from disk.
+        try { _cfg.Save(_configPath); }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, string.Format(Strings.DialogSaveFailed, ex.Message),
+                Strings.DialogSaveTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        Language.Apply(chosen.Code);
+        LanguageChanged = true;
+        Close();
     }
 
     private void OnSaveClick(object? sender, EventArgs e)
@@ -610,12 +682,12 @@ public sealed class MainForm : Form
         try
         {
             _cfg.Save(_configPath);
-            _lblStatus.Text = "Configuration saved";
+            _lblStatus.Text = Strings.StatusConfigurationSaved;
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Could not save:\n\n{ex.Message}", "Save",
-                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(this, string.Format(Strings.DialogSaveFailed, ex.Message),
+                Strings.DialogSaveTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 
