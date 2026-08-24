@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GroupDeviceAndAxis" xml:space="preserve">
+    <value>Device and axis</value>
+  </data>
+  <data name="GroupCalibration" xml:space="preserve">
+    <value>Calibration</value>
+  </data>
+  <data name="GroupVirtualDevice" xml:space="preserve">
+    <value>Virtual device</value>
+  </data>
+  <data name="GroupCurrentNotch" xml:space="preserve">
+    <value>Current notch</value>
+  </data>
+  <data name="LabelDevice" xml:space="preserve">
+    <value>Device:</value>
+  </data>
+  <data name="LabelAxis" xml:space="preserve">
+    <value>Axis:</value>
+  </data>
+  <data name="LabelMinimum" xml:space="preserve">
+    <value>Minimum:</value>
+  </data>
+  <data name="LabelMaximum" xml:space="preserve">
+    <value>Maximum:</value>
+  </data>
+  <data name="LabelHysteresis" xml:space="preserve">
+    <value>Hysteresis:</value>
+  </data>
+  <data name="LabelModel" xml:space="preserve">
+    <value>Model:</value>
+  </data>
+  <data name="LabelLanguage" xml:space="preserve">
+    <value>Language:</value>
+  </data>
+  <data name="ButtonRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="ButtonCalibrate" xml:space="preserve">
+    <value>Calibrate</value>
+  </data>
+  <data name="ButtonCalibrateFinish" xml:space="preserve">
+    <value>Finish</value>
+  </data>
+  <data name="ButtonStartBridge" xml:space="preserve">
+    <value>Start bridge</value>
+  </data>
+  <data name="ButtonStopBridge" xml:space="preserve">
+    <value>Stop bridge</value>
+  </data>
+  <data name="ButtonSaveConfiguration" xml:space="preserve">
+    <value>Save configuration</value>
+  </data>
+  <data name="CheckInvertAxis" xml:space="preserve">
+    <value>Invert axis</value>
+  </data>
+  <data name="CheckEbOnHandle" xml:space="preserve">
+    <value>EB on the handle (15 notches instead of 14)</value>
+  </data>
+  <data name="HintAxis" xml:space="preserve">
+    <value>Move the handle and watch which of the six responds.</value>
+  </data>
+  <data name="HintModel" xml:space="preserve">
+    <value>{0} is the default controller.
+Only change this if the game ignores the mascon.</value>
+  </data>
+  <data name="HintButtonsInFile" xml:space="preserve">
+    <value>Buttons and hat are edited in the file
+{0}</value>
+  </data>
+  <data name="HintLanguageRestart" xml:space="preserve">
+    <value>The window reopens when you change this.</value>
+  </data>
+  <data name="StatusStopped" xml:space="preserve">
+    <value>Stopped</value>
+  </data>
+  <data name="StatusBridgeRunning" xml:space="preserve">
+    <value>Bridge running</value>
+  </data>
+  <data name="StatusCalibrating" xml:space="preserve">
+    <value>Calibrating: move the handle end to end</value>
+  </data>
+  <data name="StatusNoMovement" xml:space="preserve">
+    <value>No movement seen</value>
+  </data>
+  <data name="StatusConfigurationSaved" xml:space="preserve">
+    <value>Configuration saved</value>
+  </data>
+  <data name="StatusFailedToStart" xml:space="preserve">
+    <value>Failed to start</value>
+  </data>
+  <data name="StatusNoJoystick" xml:space="preserve">
+    <value>No joystick detected</value>
+  </data>
+  <data name="DeviceItem" xml:space="preserve">
+    <value>{0} - {1} - {2} axes, {3} buttons</value>
+  </data>
+  <data name="NotchSending" xml:space="preserve">
+    <value>axis {0}   ·   {1:F1}% of travel   ·   sending to the game</value>
+  </data>
+  <data name="NotchPreview" xml:space="preserve">
+    <value>axis {0}   ·   {1:F1}% of travel   ·   preview, the bridge is stopped</value>
+  </data>
+  <data name="NotchAxisMissing" xml:space="preserve">
+    <value>the selected axis does not exist on this device</value>
+  </data>
+  <data name="DialogCalibrationTitle" xml:space="preserve">
+    <value>Calibration</value>
+  </data>
+  <data name="DialogCalibrationNoMovement" xml:space="preserve">
+    <value>No movement was seen on the selected axis.
+
+Check the device and the axis: move the handle and watch which of the six values changes.</value>
+  </data>
+  <data name="DialogStartTitle" xml:space="preserve">
+    <value>Start bridge</value>
+  </data>
+  <data name="DialogStartFailed" xml:space="preserve">
+    <value>Could not create the virtual mascon.
+
+{0}: {1}
+
+If this is a permissions problem, run the program as administrator.</value>
+  </data>
+  <data name="DialogSaveTitle" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="DialogSaveFailed" xml:space="preserve">
+    <value>Could not save:
+
+{0}</value>
+  </data>
+  <data name="ConsoleUsage" xml:space="preserve">
+    <value>Usage: mascon-bridge [gui|list|calibrate|test|run]</value>
+  </data>
+  <data name="ConsoleUsageNoArgs" xml:space="preserve">
+    <value>  with no arguments it opens the control window</value>
+  </data>
+  <data name="ConsoleListHeader" xml:space="preserve">
+    <value>Move the handles and press buttons. Ctrl+C to quit.</value>
+  </data>
+  <data name="ConsoleNoJoystick" xml:space="preserve">
+    <value>No joystick detected.</value>
+  </data>
+  <data name="ConsoleJoystickLine" xml:space="preserve">
+    <value>Joystick {0}: {1}  {2} axes, {3} buttons</value>
+  </data>
+  <data name="ConsoleAxisLine" xml:space="preserve">
+    <value>   axis {0}: {1,6}  {2}</value>
+  </data>
+  <data name="ConsoleButtonsLine" xml:space="preserve">
+    <value>   buttons: {0}</value>
+  </data>
+  <data name="ConsolePovLine" xml:space="preserve">
+    <value>   POV: {0}</value>
+  </data>
+  <data name="ConsoleCalibrating" xml:space="preserve">
+    <value>Calibrating joystick {0}, axis {1}.</value>
+  </data>
+  <data name="ConsoleCalibrateHint" xml:space="preserve">
+    <value>Move the handle end to end a few times, then press Enter.</value>
+  </data>
+  <data name="ConsoleCalibrateLive" xml:space="preserve">
+    <value>  current {0,6}   min {1,6}   max {2,6}   </value>
+  </data>
+  <data name="ConsoleCalibrateNoMovement" xml:space="preserve">
+    <value>No movement seen. Check the joystick number and axis with 'list'.</value>
+  </data>
+  <data name="ConsoleCalibrateSaved" xml:space="preserve">
+    <value>Saved: AxisMin={0}, AxisMax={1}</value>
+  </data>
+  <data name="ConsoleCreatingDevice" xml:space="preserve">
+    <value>Creating virtual mascon  VID=0x{0:X4}  PID=0x{1:X4}  "{2}"</value>
+  </data>
+  <data name="ConsoleTestReady" xml:space="preserve">
+    <value>Ready. Open joy.cpl or Steam's controller test and watch the Y axis.</value>
+  </data>
+  <data name="ConsoleTestCycling" xml:space="preserve">
+    <value>Cycling the notches... Ctrl+C to quit.</value>
+  </data>
+  <data name="ConsoleTestNotch" xml:space="preserve">
+    <value>  notch {0,-3}  value 0x{1:X2}   </value>
+  </data>
+  <data name="ConsoleRunHandle" xml:space="preserve">
+    <value>Handle : joystick {0}, axis {1}, range {2}..{3}{4}</value>
+  </data>
+  <data name="ConsoleRunInverted" xml:space="preserve">
+    <value> (inverted)</value>
+  </data>
+  <data name="ConsoleRunZones" xml:space="preserve">
+    <value>Zones  : {0} ({1} .. P5)</value>
+  </data>
+  <data name="ConsoleRunVirtual" xml:space="preserve">
+    <value>Virtual: VID=0x{0:X4} PID=0x{1:X4} "{2}"</value>
+  </data>
+  <data name="ConsoleRunLine" xml:space="preserve">
+    <value>  {0,-3}  0x{1:X2}   buttons {2}</value>
+  </data>
+  <data name="ConsoleStopped" xml:space="preserve">
+    <value>Stopped.</value>
+  </data>
+  <data name="ConfigCreatedSample" xml:space="preserve">
+    <value>No config found, wrote a sample one to {0}</value>
+  </data>
+  <data name="ConfigUnreadable" xml:space="preserve">
+    <value>config.json could not be read</value>
+  </data>
+</root>

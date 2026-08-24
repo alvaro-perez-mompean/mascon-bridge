@@ -53,6 +53,10 @@ public sealed class Config
 
     public int PollMs { get; set; } = 8;
 
+    // --- Interface ---
+    /// <summary>Language code, "ja" or "en". See Language.Supported.</summary>
+    public string Language { get; set; } = MasconBridge.Language.Default;
+
     private static readonly JsonSerializerOptions Opts = new()
     {
         WriteIndented = true,
@@ -66,12 +70,12 @@ public sealed class Config
         {
             var fresh = Default();
             File.WriteAllText(path, JsonSerializer.Serialize(fresh, Opts));
-            Console.WriteLine($"No config found, wrote a sample one to {path}");
+            Console.WriteLine(string.Format(Strings.ConfigCreatedSample, path));
             return fresh;
         }
 
         return JsonSerializer.Deserialize<Config>(File.ReadAllText(path), Opts)
-               ?? throw new InvalidDataException("config.json could not be read");
+               ?? throw new InvalidDataException(Strings.ConfigUnreadable);
     }
 
     public void Save(string path)

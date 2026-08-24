@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="GroupDeviceAndAxis" xml:space="preserve">
+    <value>デバイスと軸</value>
+  </data>
+  <data name="GroupCalibration" xml:space="preserve">
+    <value>キャリブレーション</value>
+  </data>
+  <data name="GroupVirtualDevice" xml:space="preserve">
+    <value>仮想デバイス</value>
+  </data>
+  <data name="GroupCurrentNotch" xml:space="preserve">
+    <value>現在のノッチ</value>
+  </data>
+  <data name="LabelDevice" xml:space="preserve">
+    <value>デバイス:</value>
+  </data>
+  <data name="LabelAxis" xml:space="preserve">
+    <value>軸:</value>
+  </data>
+  <data name="LabelMinimum" xml:space="preserve">
+    <value>最小:</value>
+  </data>
+  <data name="LabelMaximum" xml:space="preserve">
+    <value>最大:</value>
+  </data>
+  <data name="LabelHysteresis" xml:space="preserve">
+    <value>ヒステリシス:</value>
+  </data>
+  <data name="LabelModel" xml:space="preserve">
+    <value>機種:</value>
+  </data>
+  <data name="LabelLanguage" xml:space="preserve">
+    <value>言語:</value>
+  </data>
+  <data name="ButtonRefresh" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="ButtonCalibrate" xml:space="preserve">
+    <value>測定開始</value>
+  </data>
+  <data name="ButtonCalibrateFinish" xml:space="preserve">
+    <value>測定終了</value>
+  </data>
+  <data name="ButtonStartBridge" xml:space="preserve">
+    <value>ブリッジを開始</value>
+  </data>
+  <data name="ButtonStopBridge" xml:space="preserve">
+    <value>ブリッジを停止</value>
+  </data>
+  <data name="ButtonSaveConfiguration" xml:space="preserve">
+    <value>設定を保存</value>
+  </data>
+  <data name="CheckInvertAxis" xml:space="preserve">
+    <value>軸を反転</value>
+  </data>
+  <data name="CheckEbOnHandle" xml:space="preserve">
+    <value>非常ブレーキをハンドルに含める（14 ノッチではなく 15 ノッチ）</value>
+  </data>
+  <data name="HintAxis" xml:space="preserve">
+    <value>ハンドルを動かし、6 つのうちどれが反応するか確認してください。</value>
+  </data>
+  <data name="HintModel" xml:space="preserve">
+    <value>{0} が既定のコントローラーです。
+ゲームがマスコンを認識しない場合のみ変更してください。</value>
+  </data>
+  <data name="HintButtonsInFile" xml:space="preserve">
+    <value>ボタンとハットはファイルで編集します
+{0}</value>
+  </data>
+  <data name="HintLanguageRestart" xml:space="preserve">
+    <value>変更するとウィンドウが開き直します。</value>
+  </data>
+  <data name="StatusStopped" xml:space="preserve">
+    <value>停止中</value>
+  </data>
+  <data name="StatusBridgeRunning" xml:space="preserve">
+    <value>ブリッジ動作中</value>
+  </data>
+  <data name="StatusCalibrating" xml:space="preserve">
+    <value>測定中: ハンドルを端から端まで動かしてください</value>
+  </data>
+  <data name="StatusNoMovement" xml:space="preserve">
+    <value>動きを検出できません</value>
+  </data>
+  <data name="StatusConfigurationSaved" xml:space="preserve">
+    <value>設定を保存しました</value>
+  </data>
+  <data name="StatusFailedToStart" xml:space="preserve">
+    <value>開始できませんでした</value>
+  </data>
+  <data name="StatusNoJoystick" xml:space="preserve">
+    <value>ジョイスティックが見つかりません</value>
+  </data>
+  <data name="DeviceItem" xml:space="preserve">
+    <value>{0} - {1} - {2} 軸, {3} ボタン</value>
+  </data>
+  <data name="NotchSending" xml:space="preserve">
+    <value>軸 {0}   ·   全体の {1:F1}%   ·   ゲームへ送信中</value>
+  </data>
+  <data name="NotchPreview" xml:space="preserve">
+    <value>軸 {0}   ·   全体の {1:F1}%   ·   プレビュー（ブリッジは停止中）</value>
+  </data>
+  <data name="NotchAxisMissing" xml:space="preserve">
+    <value>選択した軸はこのデバイスにありません</value>
+  </data>
+  <data name="DialogCalibrationTitle" xml:space="preserve">
+    <value>キャリブレーション</value>
+  </data>
+  <data name="DialogCalibrationNoMovement" xml:space="preserve">
+    <value>選択した軸に動きがありませんでした。
+
+デバイスと軸を確認してください。ハンドルを動かし、6 つの値のどれが変化するか見てください。</value>
+  </data>
+  <data name="DialogStartTitle" xml:space="preserve">
+    <value>ブリッジの開始</value>
+  </data>
+  <data name="DialogStartFailed" xml:space="preserve">
+    <value>仮想マスコンを作成できませんでした。
+
+{0}: {1}
+
+権限の問題であれば、管理者として実行してください。</value>
+  </data>
+  <data name="DialogSaveTitle" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="DialogSaveFailed" xml:space="preserve">
+    <value>保存できませんでした:
+
+{0}</value>
+  </data>
+  <data name="ConsoleUsage" xml:space="preserve">
+    <value>使い方: mascon-bridge [gui|list|calibrate|test|run]</value>
+  </data>
+  <data name="ConsoleUsageNoArgs" xml:space="preserve">
+    <value>  引数なしで実行すると設定ウィンドウが開きます</value>
+  </data>
+  <data name="ConsoleListHeader" xml:space="preserve">
+    <value>ハンドルを動かし、ボタンを押してください。Ctrl+C で終了します。</value>
+  </data>
+  <data name="ConsoleNoJoystick" xml:space="preserve">
+    <value>ジョイスティックが見つかりません。</value>
+  </data>
+  <data name="ConsoleJoystickLine" xml:space="preserve">
+    <value>ジョイスティック {0}: {1}  {2} 軸, {3} ボタン</value>
+  </data>
+  <data name="ConsoleAxisLine" xml:space="preserve">
+    <value>   軸 {0}: {1,6}  {2}</value>
+  </data>
+  <data name="ConsoleButtonsLine" xml:space="preserve">
+    <value>   ボタン: {0}</value>
+  </data>
+  <data name="ConsolePovLine" xml:space="preserve">
+    <value>   POV: {0}</value>
+  </data>
+  <data name="ConsoleCalibrating" xml:space="preserve">
+    <value>ジョイスティック {0}、軸 {1} を測定します。</value>
+  </data>
+  <data name="ConsoleCalibrateHint" xml:space="preserve">
+    <value>ハンドルを端から端まで数回動かし、Enter を押してください。</value>
+  </data>
+  <data name="ConsoleCalibrateLive" xml:space="preserve">
+    <value>  現在 {0,6}   最小 {1,6}   最大 {2,6}   </value>
+  </data>
+  <data name="ConsoleCalibrateNoMovement" xml:space="preserve">
+    <value>動きを検出できません。'list' でジョイスティック番号と軸を確認してください。</value>
+  </data>
+  <data name="ConsoleCalibrateSaved" xml:space="preserve">
+    <value>保存しました: AxisMin={0}, AxisMax={1}</value>
+  </data>
+  <data name="ConsoleCreatingDevice" xml:space="preserve">
+    <value>仮想マスコンを作成します  VID=0x{0:X4}  PID=0x{1:X4}  「{2}」</value>
+  </data>
+  <data name="ConsoleTestReady" xml:space="preserve">
+    <value>準備完了。joy.cpl か Steam のコントローラーテストで Y 軸を確認してください。</value>
+  </data>
+  <data name="ConsoleTestCycling" xml:space="preserve">
+    <value>ノッチを順に送っています... Ctrl+C で終了します。</value>
+  </data>
+  <data name="ConsoleTestNotch" xml:space="preserve">
+    <value>  ノッチ {0,-3}  値 0x{1:X2}   </value>
+  </data>
+  <data name="ConsoleRunHandle" xml:space="preserve">
+    <value>ハンドル: ジョイスティック {0}、軸 {1}、範囲 {2}..{3}{4}</value>
+  </data>
+  <data name="ConsoleRunInverted" xml:space="preserve">
+    <value>（反転）</value>
+  </data>
+  <data name="ConsoleRunZones" xml:space="preserve">
+    <value>ゾーン  : {0} ({1} .. P5)</value>
+  </data>
+  <data name="ConsoleRunVirtual" xml:space="preserve">
+    <value>仮想    : VID=0x{0:X4} PID=0x{1:X4}「{2}」</value>
+  </data>
+  <data name="ConsoleRunLine" xml:space="preserve">
+    <value>  {0,-3}  0x{1:X2}   ボタン {2}</value>
+  </data>
+  <data name="ConsoleStopped" xml:space="preserve">
+    <value>停止しました。</value>
+  </data>
+  <data name="ConfigCreatedSample" xml:space="preserve">
+    <value>設定が見つからないため、サンプルを {0} に作成しました</value>
+  </data>
+  <data name="ConfigUnreadable" xml:space="preserve">
+    <value>config.json を読み込めませんでした</value>
+  </data>
+</root>

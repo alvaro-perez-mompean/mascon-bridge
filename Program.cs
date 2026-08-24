@@ -14,6 +14,11 @@ using MasconBridge;
 //    run        normal mode, no window
 // =============================================================================
 
+// Language before anything else, so even the first message comes out translated.
+// Read straight from disk: Config.Load would print in the wrong language if the
+// file is missing.
+Language.Apply(ReadConfiguredLanguage());
+
 string mode = args.Length > 0 ? args[0].ToLowerInvariant() : "gui";
 
 return mode switch
@@ -26,10 +31,28 @@ return mode switch
     _ => Usage(),
 };
 
+static string ReadConfiguredLanguage()
+{
+    try
+    {
+        string path = File.Exists(Config.DefaultPath)
+            ? Config.DefaultPath
+            : Path.Combine(AppContext.BaseDirectory, Config.DefaultPath);
+
+        return File.Exists(path)
+            ? Config.Load(path).Language
+            : Language.Default;
+    }
+    catch
+    {
+        return Language.Default;
+    }
+}
+
 static int Usage()
 {
-    Console.WriteLine("Usage: mascon-bridge [gui|list|calibrate|test|run]");
-    Console.WriteLine("  with no arguments it opens the control window");
+    Console.WriteLine(Strings.ConsoleUsage);
+    Console.WriteLine(Strings.ConsoleUsageNoArgs);
     return 1;
 }
 
@@ -46,7 +69,18 @@ static int CmdGui()
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
-            Application.Run(new MainForm());
+
+            // Changing the language rebuilds the window rather than asking for a
+            // restart: every control is created in code, so there is nothing to
+            // re-translate in place.
+            bool again;
+            do
+            {
+                var form = new MainForm();
+                Application.Run(form);
+                again = form.LanguageChanged;
+            }
+            while (again);
         }
         catch (Exception ex)
         {
@@ -67,11 +101,13 @@ static int CmdGui()
 // -----------------------------------------------------------------------------
 static int CmdList()
 {
-    Console.WriteLine("Move the handles and press buttons. Ctrl+C to quit.\n");
+    Console.WriteLine(Strings.ConsoleListHeader);
+    Console.WriteLine();
+
     var ids = Joystick.Enumerate().Select(e => e.Id).ToList();
     if (ids.Count == 0)
     {
-        Console.WriteLine("No joystick detected.");
+        Console.WriteLine(Strings.ConsoleNoJoystick);
         return 1;
     }
 
@@ -83,15 +119,20 @@ static int CmdList()
             Joystick.TryCaps(id, out var caps);
             if (!Joystick.TryRead(id, out var j)) continue;
 
-            Console.WriteLine($"Joystick {id}: {caps.wMid:X4}:{caps.wPid:X4}  {caps.wNumAxes} axes, {caps.wNumButtons} buttons".PadRight(70));
+            Console.WriteLine(string.Format(Strings.ConsoleJoystickLine,
+                id, $"{caps.wMid:X4}:{caps.wPid:X4}", caps.wNumAxes, caps.wNumButtons).PadRight(70));
+
             foreach (var ax in Joystick.AxisNames)
             {
                 int v = Joystick.GetAxis(j, ax);
-                Console.WriteLine($"   axis {ax}: {v,6}  {Bar(v, 0, 65535)}".PadRight(70));
+                Console.WriteLine(string.Format(Strings.ConsoleAxisLine,
+                    ax, v, Bar(v, 0, 65535)).PadRight(70));
             }
+
             var pressed = Joystick.PressedButtons(j);
-            Console.WriteLine($"   buttons: {(pressed.Count == 0 ? "-" : string.Join(' ', pressed))}".PadRight(70));
-            Console.WriteLine($"   POV: {j.dwPOV}".PadRight(70));
+            Console.WriteLine(string.Format(Strings.ConsoleButtonsLine,
+                pressed.Count == 0 ? "-" : string.Join(' ', pressed)).PadRight(70));
+            Console.WriteLine(string.Format(Strings.ConsolePovLine, j.dwPOV).PadRight(70));
             Console.WriteLine(new string(' ', 70));
         }
         Thread.Sleep(80);
@@ -110,8 +151,9 @@ static string Bar(int v, int min, int max)
 static int CmdCalibrate()
 {
     var cfg = Config.Load(Config.DefaultPath);
-    Console.WriteLine($"Calibrating joystick {cfg.AxisDeviceId}, axis {cfg.AxisName}.");
-    Console.WriteLine("Move the handle end to end a few times, then press Enter.\n");
+    Console.WriteLine(string.Format(Strings.ConsoleCalibrating, cfg.AxisDeviceId, cfg.AxisName));
+    Console.WriteLine(Strings.ConsoleCalibrateHint);
+    Console.WriteLine();
 
     int min = int.MaxValue, max = int.MinValue;
     var stop = false;
@@ -127,7 +169,7 @@ static int CmdCalibrate()
             {
                 min = Math.Min(min, v);
                 max = Math.Max(max, v);
-                Console.Write($"\r  current {v,6}   min {min,6}   max {max,6}   ");
+                Console.Write("\r" + string.Format(Strings.ConsoleCalibrateLive, v, min, max));
             }
         }
         Thread.Sleep(20);
@@ -135,14 +177,16 @@ static int CmdCalibrate()
 
     if (min >= max)
     {
-        Console.WriteLine("\nNo movement seen. Check the joystick number and axis with 'list'.");
+        Console.WriteLine();
+        Console.WriteLine(Strings.ConsoleCalibrateNoMovement);
         return 1;
     }
 
     cfg.AxisMin = min;
     cfg.AxisMax = max;
     cfg.Save(Config.DefaultPath);
-    Console.WriteLine($"\nSaved: AxisMin={min}, AxisMax={max}");
+    Console.WriteLine();
+    Console.WriteLine(string.Format(Strings.ConsoleCalibrateSaved, min, max));
     return 0;
 }
 
@@ -151,18 +195,19 @@ static int CmdTest()
 {
     var cfg = Config.Load(Config.DefaultPath);
     var (vid, pid, product) = cfg.ResolveDevice();
-    Console.WriteLine($"Creating virtual mascon  VID=0x{vid:X4}  PID=0x{pid:X4}  \"{product}\"");
+    Console.WriteLine(string.Format(Strings.ConsoleCreatingDevice, vid, pid, product));
 
     using var dev = new VirtualMascon(vid, pid, product);
-    Console.WriteLine("Ready. Open joy.cpl or Steam's controller test and watch the Y axis.");
-    Console.WriteLine("Cycling the notches... Ctrl+C to quit.\n");
+    Console.WriteLine(Strings.ConsoleTestReady);
+    Console.WriteLine(Strings.ConsoleTestCycling);
+    Console.WriteLine();
 
     int i = 0;
     while (true)
     {
         var (name, value) = Zuiki.Notches[i];
         dev.Submit(Zuiki.BuildReport(value, 0, Zuiki.HatCentered));
-        Console.Write($"\r  notch {name,-3}  value 0x{value:X2}   ");
+        Console.Write("\r" + string.Format(Strings.ConsoleTestNotch, name, value));
         i = (i + 1) % Zuiki.Notches.Length;
         Thread.Sleep(1200);
     }
@@ -177,10 +222,11 @@ static int CmdRun()
     int firstNotch = cfg.IncludeEmergencyInAxis ? 0 : 1;
     int zones = Zuiki.Notches.Length - firstNotch;
 
-    Console.WriteLine($"Handle : joystick {cfg.AxisDeviceId}, axis {cfg.AxisName}, "
-                      + $"range {cfg.AxisMin}..{cfg.AxisMax}{(cfg.Invert ? " (inverted)" : "")}");
-    Console.WriteLine($"Zones  : {zones} ({Zuiki.Notches[firstNotch].Name} .. P5)");
-    Console.WriteLine($"Virtual: VID=0x{vid:X4} PID=0x{pid:X4} \"{product}\"");
+    Console.WriteLine(string.Format(Strings.ConsoleRunHandle,
+        cfg.AxisDeviceId, cfg.AxisName, cfg.AxisMin, cfg.AxisMax,
+        cfg.Invert ? Strings.ConsoleRunInverted : ""));
+    Console.WriteLine(string.Format(Strings.ConsoleRunZones, zones, Zuiki.Notches[firstNotch].Name));
+    Console.WriteLine(string.Format(Strings.ConsoleRunVirtual, vid, pid, product));
     Console.WriteLine();
 
     using var runner = new BridgeRunner(cfg);
@@ -193,7 +239,8 @@ static int CmdRun()
     while (!quit.IsSet)
     {
         var s = runner.State;
-        string line = $"  {s.NotchName,-3}  0x{s.NotchValue:X2}   buttons {Convert.ToString(s.Buttons, 2).PadLeft(14, '0')}";
+        string line = string.Format(Strings.ConsoleRunLine,
+            s.NotchName, s.NotchValue, Convert.ToString(s.Buttons, 2).PadLeft(14, '0'));
         if (line != lastLine)
         {
             Console.Write("\r" + line.PadRight(60));
@@ -202,7 +249,8 @@ static int CmdRun()
         Thread.Sleep(50);
     }
 
-    Console.WriteLine("\nStopped.");
+    Console.WriteLine();
+    Console.WriteLine(Strings.ConsoleStopped);
     return 0;
 }
 

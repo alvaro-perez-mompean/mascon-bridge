@@ -19,6 +19,10 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <!-- Requests elevation: HIDMaestro needs admin to install and sign the driver -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Only these two ship. Without it the build drags in a satellite folder for
+         every language the framework happens to be translated into. Keep in step
+         with Language.Supported. -->
+    <SatelliteResourceLanguages>en;ja</SatelliteResourceLanguages>
     <!-- Committed because the build should not need Python and cairo.
          Regenerate from assets/icon.svg with: python assets/build-icon.py -->
     <ApplicationIcon>mascon-bridge.ico</ApplicationIcon>
