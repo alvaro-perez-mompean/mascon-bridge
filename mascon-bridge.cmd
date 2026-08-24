@@ -1,6 +1,8 @@
 @echo off
 rem ---------------------------------------------------------------------------
-rem  Opens the bridge control panel. Double click and accept the UAC prompt.
+rem  Opens the bridge control panel from a source tree, where the executable is
+rem  several folders down under bin\. With a release zip just run
+rem  mascon-bridge.exe directly; this script has nothing to add there.
 rem
 rem  For the console mode instead:  mascon-bridge.exe run
 rem

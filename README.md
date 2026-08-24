@@ -44,16 +44,21 @@ see a mascon. No keys, no counting presses, nothing to fall out of sync.
 Buttons and a hat can be mapped too, from the same device or a different one — useful
 when the lever and the buttons live on separate pieces of hardware.
 
-## Download
+## Install
 
 Grab the latest zip from [Releases](https://github.com/alvaro-perez-mompean/mascon-bridge/releases),
-unzip it and run **`mascon-bridge.cmd`**.
+unzip it and run **`mascon-bridge.exe`**.
 
-Nothing else to install: the .NET runtime is bundled and so is HIDMaestro, which
-installs its own driver the first time the bridge starts. That is what makes the
-download around 90 MB.
+That is the executable itself, sitting in the root of the zip. The `.cmd` file next
+to it is a convenience for running from a source tree, where the executable is buried
+several folders deep under `bin\`; from the zip there is nothing for it to do.
 
-To build from source instead, see below.
+That really is everything. The .NET runtime is bundled, HIDMaestro is bundled, and
+the bridge installs the HID driver itself the first time it starts — you only have to
+accept the administrator prompt. There is nothing to download separately and no
+certificate to set up by hand. That is what makes the zip around 90 MB.
+
+Building from source is a separate path, described further down.
 
 ## Requirements
 
@@ -70,15 +75,19 @@ Developed and tested against a Thrustmaster T.16000M FCS HOTAS, using the TWCS
 throttle lever for the handle and the stick for buttons and hat. Nothing in the code
 is specific to it.
 
-## Install
+## Build from source
+
+**Skip this whole section if you downloaded a release.** None of it is needed: the
+zip already carries `HIDMaestro.Core.dll`, and the bridge installs the driver itself
+on the first run.
+
+`HIDMaestro.Core.dll` is a third party binary of about 40 MB and is not committed, so
+a clone has to fetch it before it will build:
 
 1. Download the latest HIDMaestro release from
    <https://github.com/hifihedgehog/HIDMaestro/releases>.
-2. Run `HIDMaestroTest.exe emulate xbox-360-wired` once **as administrator**. That
-   generates the certificate, signs and installs the driver. If an Xbox pad shows up
-   in `joy.cpl`, everything else will work. Type `quit` to exit.
-3. Copy `HIDMaestro.Core.dll` into this project's `lib\` folder.
-4. Build:
+2. Copy `HIDMaestro.Core.dll` out of the zip into this project's `lib\` folder.
+3. Build:
 
    ```
    cd mascon-bridge
@@ -88,9 +97,17 @@ is specific to it.
    The executable lands in
    `bin\Release\net10.0-windows10.0.26100.0\win-x64\mascon-bridge.exe`.
 
+### Checking the driver on its own
+
+Not a required step, but a quick way to tell a driver problem from a bridge problem:
+run `HIDMaestroTest.exe emulate xbox-360-wired` once **as administrator**. It
+generates the certificate, signs and installs the driver, exactly as the bridge does
+at startup. If an Xbox pad appears in `joy.cpl`, the driver side is fine and anything
+still broken is this project's fault. Type `quit` to exit.
+
 ## Use
 
-Double click **`mascon-bridge.cmd`** and accept the UAC prompt. It opens the control
+Double click **`mascon-bridge.exe`** and accept the UAC prompt. It opens the control
 panel:
 
 - **Device** and **Axis** dropdowns. All six axes of the selected device are shown
@@ -138,7 +155,7 @@ mascon-bridge.exe run        normal mode, no window
 dotnet test mascon-bridge.slnx
 ```
 
-107 tests over the parts that can be checked without hardware: the notch table and
+110 tests over the parts that can be checked without hardware: the notch table and
 report packing, the axis maths and hysteresis, configuration round trips and model
 resolution, and the winmm helpers for hat and buttons. Device enumeration and the
 HIDMaestro calls need real hardware and are left out.
@@ -219,7 +236,7 @@ the driver with competitive titles that ship kernel level anti-cheat.
 | `Config.cs` / `config.json` | Configuration |
 | `Program.cs` | Entry point and console modes |
 | `zuiki-zkns001.json` | The HIDMaestro profile as JSON, if you prefer loading it from disk |
-| `mascon-bridge.cmd` | Elevates and opens the control panel |
+| `mascon-bridge.cmd` | Convenience launcher for a source tree: elevates, then opens the executable from under `bin\`. Not needed with a release, where the executable is right there |
 | `try-model.ps1` | Switches `"Model"` and relaunches, to work through the six models |
 | `tests/` | xUnit suite over the hardware-independent logic |
 | `assets/` | `icon.svg` is the icon source; `build-icon.py` rasterises it into `mascon-bridge.ico` |

@@ -98,7 +98,9 @@ jobs:
           New-Item -ItemType Directory -Force -Path $stage | Out-Null
 
           Copy-Item publish/* $stage -Recurse -Force
-          Copy-Item mascon-bridge.cmd, README.md, LICENSE $stage -Force
+          # mascon-bridge.cmd is not shipped: it only exists to find the executable
+          # under bin\ in a source tree, and here the executable is right there.
+          Copy-Item README.md, LICENSE $stage -Force
           Copy-Item third-party $stage/third-party -Recurse -Force
 
           # config.json is generated on first run, so it must not ship.
@@ -125,7 +127,7 @@ jobs:
             '## Install'
             ''
             '1. Download and unzip.'
-            '2. Run **`mascon-bridge.cmd`** and accept the UAC prompt.'
+            '2. Run **`mascon-bridge.exe`** and accept the UAC prompt.'
             ''
             'Nothing else is needed: the .NET runtime is bundled, and so is HIDMaestro.'
             'The driver installs itself the first time the bridge starts.'
