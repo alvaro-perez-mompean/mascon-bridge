@@ -112,7 +112,7 @@ jobs:
           Copy-Item publish/* $stage -Recurse -Force
           # mascon-bridge.cmd is not shipped: it only exists to find the executable
           # under bin\ in a source tree, and here the executable is right there.
-          Copy-Item README.md, LICENSE $stage -Force
+          Copy-Item README.md, README.en.md, LICENSE $stage -Force
           Copy-Item third-party $stage/third-party -Recurse -Force
 
           # config.json is generated on first run, so it must not ship.
