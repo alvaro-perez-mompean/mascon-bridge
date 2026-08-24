@@ -31,7 +31,7 @@ public class ConfigTests : IDisposable
 
         Assert.Equal((ushort)vid, v);
         Assert.Equal((ushort)pid, p);
-        Assert.Equal("One Handle MasCon for Nintendo Switch", product);
+        Assert.Equal(Zuiki.ProductName, product);
     }
 
     [Fact]

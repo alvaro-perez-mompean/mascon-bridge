@@ -57,15 +57,23 @@ public static class Zuiki
     /// </summary>
     public const string DefaultModel = "ZKNS-002";
 
+    /// <summary>
+    /// What the virtual device calls itself. Neutral on purpose: the real mascon
+    /// announces "One Handle MasCon for Nintendo Switch", and repeating another
+    /// company's product name is not needed for the game to accept the device --
+    /// Steam and the game match on the vendor and product ids above.
+    /// </summary>
+    public const string ProductName = "mascon-bridge";
+
     /// <summary>Models the game recognises. They all share the same descriptor.</summary>
     public static readonly (string Model, ushort Vid, ushort Pid, string Product)[] KnownModels =
     {
-        ("ZKNS-001", 0x0F0D, 0x00C1, "One Handle MasCon for Nintendo Switch"),
-        ("ZKNS-001b", 0x33DD, 0x0001, "One Handle MasCon for Nintendo Switch"),
-        ("ZKNS-002", 0x33DD, 0x0002, "One Handle MasCon for Nintendo Switch"),
-        ("ZKNS-011", 0x33DD, 0x0003, "One Handle MasCon for Nintendo Switch"),
-        ("ZKNS-012", 0x33DD, 0x0004, "One Handle MasCon for Nintendo Switch"),
-        ("ZKNS-013", 0x33DD, 0x0005, "One Handle MasCon for Nintendo Switch"),
+        ("ZKNS-001", 0x0F0D, 0x00C1, ProductName),
+        ("ZKNS-001b", 0x33DD, 0x0001, ProductName),
+        ("ZKNS-002", 0x33DD, 0x0002, ProductName),
+        ("ZKNS-011", 0x33DD, 0x0003, ProductName),
+        ("ZKNS-012", 0x33DD, 0x0004, ProductName),
+        ("ZKNS-013", 0x33DD, 0x0005, ProductName),
     };
 
     /// <summary>Bit index of each button within the 14 bit field.</summary>
