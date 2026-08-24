@@ -27,6 +27,10 @@ throttle, a flight stick, a racing wheel, a slider box, a set of pedals, a homem
 controller. The bridge does not care what the device is — it reads one axis, splits
 the travel into notches and publishes them as a mascon.
 
+<p align="center">
+  <img src="assets/screenshot-en.png" alt="The control panel" width="620">
+</p>
+
 ## How it works
 
 The ZUIKI mascon is an ordinary HID joystick with one peculiarity: its handle is the
