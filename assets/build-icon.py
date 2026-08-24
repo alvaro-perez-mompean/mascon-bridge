@@ -18,7 +18,7 @@ from svglib.svglib import svg2rlg
 
 SVG = os.path.join("assets", "icon.svg")
 ICO = "mascon-bridge.ico"
-PREVIEW = os.path.join("assets", "preview")
+PNG = os.path.join("assets", "icon-256.png")   # committed, used by the README
 
 VIEWBOX = 256
 CORNER_RADIUS = 56          # keep in step with the rx on the background rect
@@ -49,14 +49,14 @@ def main() -> int:
         return 1
 
     master = render_master()
-    os.makedirs(PREVIEW, exist_ok=True)
-    master.resize((256, 256), Image.LANCZOS).save(os.path.join(PREVIEW, "icon-256.png"))
+    master.resize((256, 256), Image.LANCZOS).save(PNG)
 
     # Downsampling each size from the 1024 master keeps the small ones crisp;
     # letting the ico writer scale from one bitmap does not.
     frames = [master.resize((s, s), Image.LANCZOS) for s in SIZES]
     frames[0].save(ICO, format="ICO", sizes=[(s, s) for s in SIZES], append_images=frames[1:])
 
+    print(f"{PNG}: 256x256")
     print(f"{ICO}: {', '.join(f'{s}x{s}' for s in SIZES)}")
     return 0
 
