@@ -76,6 +76,10 @@ S = {
     "HintReleaseBinding": ("device {0}, button {1}", "デバイス {0}・ボタン {1}"),
     "HintReleasePress": ("Press the button you want to use.", "使いたいボタンを押してください。"),
 
+    "LabelVersion": ("version {0}", "バージョン {0}"),
+    "LinkUpdateAvailable": ("version {0} is available", "バージョン {0} が公開されています"),
+    "CheckForUpdates": ("Check for updates", "更新を確認する"),
+
     "HintLanguageRestart": (
         "The window reopens when you change this.",
         "変更するとウィンドウが開き直します。",

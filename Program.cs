@@ -17,31 +17,43 @@ using MasconBridge;
 // Language before anything else, so even the first message comes out translated.
 // Read straight from disk: Config.Load would print in the wrong language if the
 // file is missing.
+// --config <path> overrides where the settings live, for anyone keeping several
+// setups or working in a source tree. Everything else uses %APPDATA%.
+string? explicitConfig = ExplicitConfigPath(args);
+string configPath = Config.Resolve(explicitConfig);
+
 Language.Apply(ReadConfiguredLanguage());
 
-string mode = args.Length > 0 ? args[0].ToLowerInvariant() : "gui";
+string mode = args.FirstOrDefault(a => !a.StartsWith('-')) is { } first
+    ? first.ToLowerInvariant()
+    : "gui";
 
 return mode switch
 {
-    "gui" => CmdGui(),
+    "gui" => CmdGui(explicitConfig),
     "list" => CmdList(),
-    "calibrate" => CmdCalibrate(),
-    "test" => CmdTest(),
-    "run" => CmdRun(),
+    "calibrate" => CmdCalibrate(configPath),
+    "test" => CmdTest(configPath),
+    "run" => CmdRun(configPath),
     _ => Usage(),
 };
 
-static string ReadConfiguredLanguage()
+static string? ExplicitConfigPath(string[] args)
 {
+    for (int i = 0; i < args.Length - 1; i++)
+        if (args[i].Equals("--config", StringComparison.OrdinalIgnoreCase))
+            return args[i + 1];
+
+    return null;
+}
+
+string ReadConfiguredLanguage()
+{
+    // Read straight from disk rather than through Config.Load: a missing file would
+    // print its "created" message before the language is known.
     try
     {
-        string path = File.Exists(Config.DefaultPath)
-            ? Config.DefaultPath
-            : Path.Combine(AppContext.BaseDirectory, Config.DefaultPath);
-
-        return File.Exists(path)
-            ? Config.Load(path).Language
-            : Language.Default;
+        return File.Exists(configPath) ? Config.Load(configPath).Language : Language.Default;
     }
     catch
     {
@@ -57,7 +69,7 @@ static int Usage()
 }
 
 // -----------------------------------------------------------------------------
-static int CmdGui()
+static int CmdGui(string? explicitConfig)
 {
     Native.HideConsole();
 
@@ -76,7 +88,7 @@ static int CmdGui()
             bool again;
             do
             {
-                var form = new MainForm();
+                var form = new MainForm(explicitConfig);
                 Application.Run(form);
                 again = form.LanguageChanged;
             }
@@ -148,9 +160,9 @@ static string Bar(int v, int min, int max)
 }
 
 // -----------------------------------------------------------------------------
-static int CmdCalibrate()
+static int CmdCalibrate(string configPath)
 {
-    var cfg = Config.Load(Config.DefaultPath);
+    var cfg = Config.Load(configPath);
     Console.WriteLine(string.Format(Strings.ConsoleCalibrating, cfg.AxisDeviceId, cfg.AxisName));
     Console.WriteLine(Strings.ConsoleCalibrateHint);
     Console.WriteLine();
@@ -184,16 +196,16 @@ static int CmdCalibrate()
 
     cfg.AxisMin = min;
     cfg.AxisMax = max;
-    cfg.Save(Config.DefaultPath);
+    cfg.Save(configPath);
     Console.WriteLine();
     Console.WriteLine(string.Format(Strings.ConsoleCalibrateSaved, min, max));
     return 0;
 }
 
 // -----------------------------------------------------------------------------
-static int CmdTest()
+static int CmdTest(string configPath)
 {
-    var cfg = Config.Load(Config.DefaultPath);
+    var cfg = Config.Load(configPath);
     var (vid, pid, product) = cfg.ResolveDevice();
     Console.WriteLine(string.Format(Strings.ConsoleCreatingDevice, vid, pid, product));
 
@@ -214,9 +226,9 @@ static int CmdTest()
 }
 
 // -----------------------------------------------------------------------------
-static int CmdRun()
+static int CmdRun(string configPath)
 {
-    var cfg = Config.Load(Config.DefaultPath);
+    var cfg = Config.Load(configPath);
     var (vid, pid, product) = cfg.ResolveDevice();
 
 
