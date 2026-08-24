@@ -27,6 +27,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
+          # The changelog falls back to the commits since the previous tag, which
+          # a shallow clone does not have.
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -133,38 +136,65 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          $tag = "${{ steps.version.outputs.tag }}"
+
+          # release-notes\<tag>.md holds the changelog for that version, written by
+          # hand and in the same two languages as the program: Japanese, with the
+          # English inside a <details> fold. Without one, the subjects of the commits
+          # since the previous tag stand in, so a release is never published with an
+          # empty changelog.
+          $file = Join-Path 'release-notes' "$tag.md"
+          if (Test-Path $file) {
+              $changelog = Get-Content $file -Encoding utf8
+              Write-Host "Changelog from $file"
+          } else {
+              $previous = git describe --tags --abbrev=0 "$tag^" 2>$null
+              $range = if ($previous) { "$previous..$tag" } else { $tag }
+              $changelog = @(git log --no-merges --format='- %s' $range)
+              if (-not $changelog) { $changelog = @('- ' + $tag) }
+              Write-Host "No $file, using the commits in $range"
+          }
+
           # Built as an array rather than a here-string: PowerShell wants the
           # closing "@ in column 0, which would end the YAML block scalar.
+          #
+          # Japanese, like the front page of the repository and like the program
+          # itself. The English is in the changelog's own fold.
           $notes = @(
-            '## Install'
+            '## インストール'
             ''
-            '1. Download and unzip.'
-            '2. Run **`mascon-bridge.exe`** and accept the UAC prompt.'
+            '1. ダウンロードして展開します。'
+            '2. **`mascon-bridge.exe`** を実行し、UAC の確認を許可します。'
             ''
-            'Nothing else is needed: the .NET runtime is bundled, and so is HIDMaestro.'
-            'The driver installs itself the first time the bridge starts.'
+            '他に必要なものはありません。.NET ランタイムも HIDMaestro も同梱しています。'
+            'ドライバーはブリッジの初回起動時に自動でインストールされます。'
             ''
-            '`config.json` is written on first run. See the README for picking the'
-            'device, the axis, and the mascon model.'
+            '`config.json` は初回起動時に作成されます。デバイス・軸・マスコンの機種の選び方は'
+            'README を参照してください。'
             ''
-            '## Package'
+            '## 変更点'
+            ''
+            $changelog
+            ''
+            '## パッケージ'
             ''
             '| | |'
             '|---|---|'
-            '| File | `${{ steps.package.outputs.zip }}` |'
-            '| Size | ${{ steps.package.outputs.size }} |'
+            '| ファイル | `${{ steps.package.outputs.zip }}` |'
+            '| サイズ | ${{ steps.package.outputs.size }} |'
             '| SHA256 | `${{ steps.package.outputs.sha256 }}` |'
             '| HIDMaestro | `${{ env.HIDMAESTRO_VERSION }}` |'
             ''
-            'Requires Windows 10 or 11 x64 and administrator rights.'
+            'Windows 10 または 11 の x64 と、管理者権限が必要です。'
             ''
-            'HIDMaestro is bundled under its MIT licence; its notices are in `third-party/`.'
+            'HIDMaestro は MIT ライセンスのもとで同梱しています。ライセンス表記は `third-party/` にあります。'
           ) -join "`n"
 
+          # utf8 is BOM less in PowerShell 7, which the Japanese needs.
           Set-Content -Path notes.md -Value $notes -Encoding utf8
 
-          gh release create "${{ steps.version.outputs.tag }}" `
+          gh release create "$tag" `
               "${{ steps.package.outputs.zip }}" `
               --repo "${{ github.repository }}" `
-              --title "${{ steps.version.outputs.tag }}" `
+              --title "$tag" `
               --notes-file notes.md
