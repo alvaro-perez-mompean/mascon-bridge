@@ -43,11 +43,36 @@ public class ConfigTests : IDisposable
     }
 
     [Fact]
-    public void An_unknown_model_falls_back_to_the_first_one()
+    public void An_unknown_model_falls_back_to_the_one_the_game_accepts()
     {
+        // Not KnownModels[0]: that is ZKNS-001, which the game ignores.
+        var expected = Zuiki.KnownModels.First(m => m.Model == Zuiki.DefaultModel);
         var (v, p, _) = new Config { Model = "not-a-mascon" }.ResolveDevice();
-        Assert.Equal(Zuiki.KnownModels[0].Vid, v);
-        Assert.Equal(Zuiki.KnownModels[0].Pid, p);
+
+        Assert.Equal(expected.Vid, v);
+        Assert.Equal(expected.Pid, p);
+    }
+
+    [Fact]
+    public void The_default_model_is_one_of_the_known_ones()
+    {
+        Assert.Contains(Zuiki.KnownModels, m => m.Model == Zuiki.DefaultModel);
+    }
+
+    [Fact]
+    public void The_default_model_uses_the_zuiki_vendor_id()
+    {
+        // 0x0F0D is Nintendo's, inherited from the Switch pad, and the game ignores
+        // it. Defaulting to a model on that id would ship a broken configuration.
+        var model = Zuiki.KnownModels.First(m => m.Model == Zuiki.DefaultModel);
+        Assert.Equal((ushort)0x33DD, model.Vid);
+    }
+
+    [Fact]
+    public void A_fresh_config_defaults_to_that_model()
+    {
+        Assert.Equal(Zuiki.DefaultModel, new Config().Model);
+        Assert.Equal(Zuiki.DefaultModel, Config.Default().Model);
     }
 
     [Theory]
