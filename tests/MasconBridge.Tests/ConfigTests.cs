@@ -237,7 +237,16 @@ public class ConfigTests : IDisposable
     }
 
     [Fact]
-    public void Default_button_bindings_name_real_mascon_buttons()
+    public void Nothing_is_bound_to_a_button_out_of_the_box()
+    {
+        // Guessing bindings means guessing about hardware we have never seen. An
+        // unasked-for binding fires in the game with nothing on screen to explain it.
+        Assert.Empty(Config.Default().Buttons);
+        Assert.True(Config.Default().HatDeviceId < 0);
+    }
+
+    [Fact]
+    public void Whatever_is_bound_by_default_names_real_mascon_buttons()
     {
         foreach (var b in Config.Default().Buttons)
             Assert.True(Zuiki.ButtonBits.ContainsKey(b.Mascon)

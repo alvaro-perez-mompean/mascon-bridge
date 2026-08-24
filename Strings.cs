@@ -56,6 +56,17 @@ public static class Strings
         "HintReleaseNotSet",
         "HintReleaseBinding",
         "HintReleasePress",
+        "ButtonEditBindings",
+        "DialogBindingsTitle",
+        "DialogBindingsHint",
+        "LabelHat",
+        "HintHatBinding",
+        "HintHatPress",
+        "HintBindingNone",
+        "ButtonClearBinding",
+        "ButtonDialogOk",
+        "ButtonDialogCancel",
+        "HintEmergencyButton",
         "LabelVersion",
         "LinkUpdateAvailable",
         "CheckForUpdates",
@@ -145,6 +156,17 @@ public static class Strings
     public static string HintReleaseNotSet => Get(nameof(HintReleaseNotSet));
     public static string HintReleaseBinding => Get(nameof(HintReleaseBinding));
     public static string HintReleasePress => Get(nameof(HintReleasePress));
+    public static string ButtonEditBindings => Get(nameof(ButtonEditBindings));
+    public static string DialogBindingsTitle => Get(nameof(DialogBindingsTitle));
+    public static string DialogBindingsHint => Get(nameof(DialogBindingsHint));
+    public static string LabelHat => Get(nameof(LabelHat));
+    public static string HintHatBinding => Get(nameof(HintHatBinding));
+    public static string HintHatPress => Get(nameof(HintHatPress));
+    public static string HintBindingNone => Get(nameof(HintBindingNone));
+    public static string ButtonClearBinding => Get(nameof(ButtonClearBinding));
+    public static string ButtonDialogOk => Get(nameof(ButtonDialogOk));
+    public static string ButtonDialogCancel => Get(nameof(ButtonDialogCancel));
+    public static string HintEmergencyButton => Get(nameof(HintEmergencyButton));
     public static string LabelVersion => Get(nameof(LabelVersion));
     public static string LinkUpdateAvailable => Get(nameof(LinkUpdateAvailable));
     public static string CheckForUpdates => Get(nameof(CheckForUpdates));

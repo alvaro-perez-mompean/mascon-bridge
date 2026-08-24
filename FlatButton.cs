@@ -27,7 +27,7 @@ internal sealed class FlatButton : Button
     /// emoji in some Windows fonts, which the Japanese interface makes likelier
     /// still, and drawing sizes them from the button's own font.
     /// </summary>
-    public enum Mark { None, Play, Stop }
+    public enum Mark { None, Play, Stop, Save, Buttons }
 
     private readonly int _radius;
     private readonly int _gap;
@@ -75,7 +75,14 @@ internal sealed class FlatButton : Button
         }
     }
 
-    private int GlyphSize => (int)Math.Round(Theme.LineHeight(Font) * 0.60);
+    /// <summary>
+    /// The play and stop marks are solid shapes and read at anything. The disk and
+    /// the pad buttons have detail inside them, so they get more room: at the size
+    /// of the triangle, the disk's shutter and label ate the body and it came out
+    /// looking like a letter H.
+    /// </summary>
+    private int GlyphSize => (int)Math.Round(
+        Theme.LineHeight(Font) * (Glyph is Mark.Save or Mark.Buttons ? 0.78 : 0.60));
 
     public override Size GetPreferredSize(Size proposedSize)
     {
@@ -118,7 +125,7 @@ internal sealed class FlatButton : Button
 
         if (glyph > 0)
         {
-            DrawGlyph(g, new RectangleF(x, (Height - glyph) / 2f, glyph, glyph), ink);
+            DrawGlyph(g, new RectangleF(x, (Height - glyph) / 2f, glyph, glyph), ink, fill);
             x += glyph + _gap;
         }
 
@@ -144,9 +151,62 @@ internal sealed class FlatButton : Button
         };
     }
 
-    private void DrawGlyph(Graphics g, RectangleF r, Color colour)
+    /// <summary>
+    /// Drawn, never typed. The cut outs are painted in the button's own fill rather
+    /// than left empty, so a glyph reads the same over white, over the accent and
+    /// over the disabled grey.
+    /// </summary>
+    private void DrawGlyph(Graphics g, RectangleF r, Color colour, Color fill)
     {
         using var brush = new SolidBrush(colour);
+
+        if (Glyph == Mark.Save)
+        {
+            // A floppy disk: still the one shape everybody reads as "save". Three
+            // things make it legible at this size, and it was unrecognisable without
+            // them: the clipped top right corner, the shutter running off the top
+            // edge, and the label running off the bottom one. Cut outs that float in
+            // the middle of the body read as a battery, not a disk.
+            float s = r.Height;
+            float chamfer = s * 0.26f;
+            float radius = s * 0.11f;
+
+            using var body = new GraphicsPath();
+            body.AddArc(r.X, r.Y, radius * 2, radius * 2, 180, 90);
+            body.AddLine(r.X + radius, r.Y, r.Right - chamfer, r.Y);
+            body.AddLine(r.Right - chamfer, r.Y, r.Right, r.Y + chamfer);
+            body.AddLine(r.Right, r.Y + chamfer, r.Right, r.Bottom - radius);
+            body.AddArc(r.Right - radius * 2, r.Bottom - radius * 2, radius * 2, radius * 2, 0, 90);
+            body.AddArc(r.X, r.Bottom - radius * 2, radius * 2, radius * 2, 90, 90);
+            body.CloseFigure();
+            g.FillPath(brush, body);
+
+            using var cut = new SolidBrush(fill);
+            // The shutter floats rather than running off the top edge. Cutting it to
+            // the edge splits the top of the body into two shoulders, and at this
+            // size two shoulders over a wide label read as the letter H.
+            g.FillRectangle(cut, r.X + s * 0.32f, r.Y + s * 0.13f, s * 0.30f, s * 0.26f);
+            // The label does meet the bottom edge, which is what makes it a label
+            // rather than another slot.
+            g.FillRectangle(cut, r.X + s * 0.24f, r.Y + s * 0.58f, s * 0.52f, s * 0.42f + 1f);
+            return;
+        }
+
+        if (Glyph == Mark.Buttons)
+        {
+            // Two buttons on a pad, side by side, one pressed and one not: the thing
+            // being assigned, and not a keyboard, which this program never touches.
+            // Stacked on the diagonal they touched at the corners and read as one
+            // blob; in a row they stay two.
+            float d = r.Height * 0.48f;
+            float y = r.Y + (r.Height - d) / 2f;
+            g.FillEllipse(brush, r.X, y, d, d);
+
+            using var pen = new Pen(colour, Math.Max(1.2f, r.Height * 0.12f));
+            g.DrawEllipse(pen, r.Right - d + pen.Width / 2f, y + pen.Width / 2f,
+                d - pen.Width, d - pen.Width);
+            return;
+        }
 
         if (Glyph == Mark.Play)
         {

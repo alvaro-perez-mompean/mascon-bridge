@@ -61,6 +61,7 @@ public sealed class MainForm : Form
     {
         Text = Strings.ButtonOverlayPlace,
     };
+    private readonly FlatButton _btnBindings = new(FlatButton.Look.Plain);
 
     private OverlayWindow? _overlay;
     private bool _placingOverlay;
@@ -487,14 +488,37 @@ public sealed class MainForm : Form
 
         _btnSave.Click += OnSaveClick;
         _btnSave.Anchor = AnchorStyles.Right;
+        _btnSave.Glyph = FlatButton.Mark.Save;
+        _btnSave.Margin = new Padding(LogicalToDeviceUnits(8), 3, 0, 3);
+
+        // Beside Save rather than in a card of its own. A fourteenth row of window
+        // is what pushed the old layout off a 1080p screen at 125%, and this is a
+        // door to another window, not a setting to be read at a glance.
+        _btnBindings.Text = Strings.ButtonEditBindings;
+        _btnBindings.Anchor = AnchorStyles.Right;
+        _btnBindings.Glyph = FlatButton.Mark.Buttons;
+        _btnBindings.Margin = new Padding(0, 3, 0, 3);
+        _btnBindings.Click += OnEditBindingsClick;
 
         _status.Anchor = AnchorStyles.Left;
         _status.Margin = new Padding(14, 6, 14, 3);
         _status.Show(Strings.StatusStopped, StatusPill.Tone.Idle);
 
+        var tail = new FlowLayoutPanel
+        {
+            FlowDirection = FlowDirection.LeftToRight,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Anchor = AnchorStyles.Right,
+            Margin = new Padding(0),
+            WrapContents = false,
+        };
+        tail.Controls.Add(_btnBindings);
+        tail.Controls.Add(_btnSave);
+
         grid.Controls.Add(_btnStartStop, 0, 0);
         grid.Controls.Add(_status, 1, 0);
-        grid.Controls.Add(_btnSave, 2, 0);
+        grid.Controls.Add(tail, 2, 0);
 
         var pathRow = BuildPathRow();
         grid.Controls.Add(pathRow, 0, 1);
@@ -564,6 +588,29 @@ public sealed class MainForm : Form
             _status.Show(Strings.StatusDeviceMissing, StatusPill.Tone.Warn);
         else if (plan.Moves.Count > 0)
             _status.Show(Strings.StatusDevicesMoved, StatusPill.Tone.Live);
+    }
+
+    private void OnEditBindingsClick(object? sender, EventArgs e)
+    {
+        using var dialog = new BindingsDialog(_cfg.Buttons, _cfg.HatDeviceId);
+        if (dialog.ShowDialog(this) != DialogResult.OK) return;
+
+        _cfg.Buttons = dialog.Buttons;
+        _cfg.HatDeviceId = dialog.HatDeviceId;
+
+        // Saved straight away: the alternative is choosing buttons, closing the
+        // window and finding out later that none of it was kept.
+        UiToConfig();
+        try
+        {
+            _cfg.Save(_configPath);
+            _status.Show(Strings.StatusConfigurationSaved, StatusPill.Tone.Live);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, string.Format(Strings.DialogSaveFailed, ex.Message),
+                Strings.DialogSaveTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     // -------------------------------------------------------------------------

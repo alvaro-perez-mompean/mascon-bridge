@@ -184,18 +184,16 @@ public sealed class Config
     /// <summary>
     /// Written on first run. Deliberately neutral: the control panel picks the first
     /// device present, and the axis has to be identified by hand anyway.
+    ///
+    /// No buttons are bound either. Guessing that button 1 is A and button 2 is B is
+    /// guessing about somebody else's hardware, and a binding that was never asked
+    /// for is worse than none: it fires in the game and there is nothing on screen
+    /// to explain why. The window has a page for setting them now.
     /// </summary>
     public static Config Default() => new()
     {
         AxisDeviceId = 0,
         AxisName = "Z",
-        Buttons =
-        {
-            new ButtonBinding { DeviceId = 0, Button = 1, Mascon = "A" },
-            new ButtonBinding { DeviceId = 0, Button = 2, Mascon = "B" },
-            new ButtonBinding { DeviceId = 0, Button = 3, Mascon = "X" },
-            new ButtonBinding { DeviceId = 0, Button = 4, Mascon = "Y" },
-        },
     };
 
     /// <summary>Every joystick number this configuration depends on.</summary>

@@ -95,7 +95,7 @@
 ゲームがマスコンを認識しない場合のみ変更してください。</value>
   </data>
   <data name="HintButtonsInFile" xml:space="preserve">
-    <value>ボタンとハットはファイルで編集します:</value>
+    <value>設定ファイル:</value>
   </data>
   <data name="GroupCatches" xml:space="preserve">
     <value>ハンドルの引っかかり</value>
@@ -117,6 +117,39 @@
   </data>
   <data name="HintReleasePress" xml:space="preserve">
     <value>使いたいボタンを押してください。</value>
+  </data>
+  <data name="ButtonEditBindings" xml:space="preserve">
+    <value>ボタンを設定...</value>
+  </data>
+  <data name="DialogBindingsTitle" xml:space="preserve">
+    <value>ボタンとハット</value>
+  </data>
+  <data name="DialogBindingsHint" xml:space="preserve">
+    <value>マスコン側のボタンを選び、割り当てたいボタンを手元の機器で押してください。1 つのボタンに複数を割り当てられます。</value>
+  </data>
+  <data name="LabelHat" xml:space="preserve">
+    <value>ハット</value>
+  </data>
+  <data name="HintHatBinding" xml:space="preserve">
+    <value>デバイス {0}</value>
+  </data>
+  <data name="HintHatPress" xml:space="preserve">
+    <value>使いたいハットが付いている機器の、どれかのボタンを押してください。</value>
+  </data>
+  <data name="HintBindingNone" xml:space="preserve">
+    <value>未割り当て</value>
+  </data>
+  <data name="ButtonClearBinding" xml:space="preserve">
+    <value>消す</value>
+  </data>
+  <data name="ButtonDialogOk" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="ButtonDialogCancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="HintEmergencyButton" xml:space="preserve">
+    <value>EB は押している間だけ非常ブレーキがかかります。</value>
   </data>
   <data name="LabelVersion" xml:space="preserve">
     <value>バージョン {0}</value>
