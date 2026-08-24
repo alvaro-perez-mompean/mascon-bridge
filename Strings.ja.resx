@@ -151,6 +151,12 @@
   <data name="StatusNoJoystick" xml:space="preserve">
     <value>ジョイスティックが見つかりません</value>
   </data>
+  <data name="StatusDevicesMoved" xml:space="preserve">
+    <value>ジョイスティック番号が変わりました。設定も追随しました</value>
+  </data>
+  <data name="StatusDeviceMissing" xml:space="preserve">
+    <value>設定にあるジョイスティックが接続されていません</value>
+  </data>
   <data name="DeviceItem" xml:space="preserve">
     <value>{0} - {1} - {2} 軸, {3} ボタン</value>
   </data>
@@ -263,6 +269,12 @@
   </data>
   <data name="ConsoleStopped" xml:space="preserve">
     <value>停止しました。</value>
+  </data>
+  <data name="ConsoleDeviceMoved" xml:space="preserve">
+    <value>ジョイスティック {0} は {1} になりました（{2}）。設定も追随しました。</value>
+  </data>
+  <data name="ConsoleDeviceMissing" xml:space="preserve">
+    <value>ジョイスティック {0}（{1}）が接続されていません。番号はそのままにします。</value>
   </data>
   <data name="ConfigCreatedSample" xml:space="preserve">
     <value>設定が見つからないため、サンプルを {0} に作成しました</value>

@@ -111,6 +111,14 @@ public sealed class Config
     // --- Buttons ---
     public List<ButtonBinding> Buttons { get; set; } = new();
 
+    // --- Devices ---
+    /// <summary>
+    /// What each joystick number was, as "2": "044F:B687". winmm renumbers devices
+    /// whenever anything is plugged in or out, so the numbers above are only useful
+    /// alongside a note of what they pointed at. See <see cref="DeviceMap"/>.
+    /// </summary>
+    public Dictionary<int, string> Devices { get; set; } = new();
+
     // --- Overlay ---
     /// <summary>The notch strip drawn over the game while the bridge runs.</summary>
     public bool OverlayEnabled { get; set; } = true;
@@ -189,6 +197,59 @@ public sealed class Config
             new ButtonBinding { DeviceId = 0, Button = 4, Mascon = "Y" },
         },
     };
+
+    /// <summary>Every joystick number this configuration depends on.</summary>
+    public IEnumerable<int> ReferencedDevices()
+    {
+        var seen = new HashSet<int>();
+        foreach (var id in Ids())
+            if (id >= 0 && seen.Add(id))
+                yield return id;
+
+        IEnumerable<int> Ids()
+        {
+            yield return AxisDeviceId;
+            yield return HatDeviceId;
+            yield return PowerReleaseDeviceId;
+            yield return EmergencyReleaseDeviceId;
+            foreach (var b in Buttons) yield return b.DeviceId;
+        }
+    }
+
+    /// <summary>
+    /// Writes down what each referenced number points at right now, so a later run
+    /// can find those devices again after Windows has renumbered them.
+    /// </summary>
+    public void RememberDevices(IReadOnlyDictionary<int, string> present)
+    {
+        foreach (var id in ReferencedDevices())
+            if (present.TryGetValue(id, out var identity))
+                Devices[id] = identity;
+    }
+
+    /// <summary>
+    /// Follows the remembered devices to wherever they are now and rewrites every
+    /// number that names one. Devices that are not connected are left alone: their
+    /// numbers stay put, and the plan says which ones they are so the caller can
+    /// tell the user instead of silently reading the wrong axis.
+    /// </summary>
+    public DeviceMap.Plan RelocateDevices(IReadOnlyDictionary<int, string> present)
+    {
+        var plan = DeviceMap.Match(Devices, present);
+        if (plan.Remap.Count == 0) return plan;
+
+        AxisDeviceId = plan.Apply(AxisDeviceId);
+        HatDeviceId = plan.Apply(HatDeviceId);
+        PowerReleaseDeviceId = plan.Apply(PowerReleaseDeviceId);
+        EmergencyReleaseDeviceId = plan.Apply(EmergencyReleaseDeviceId);
+        foreach (var b in Buttons) b.DeviceId = plan.Apply(b.DeviceId);
+
+        var moved = new Dictionary<int, string>();
+        foreach (var (id, identity) in Devices) moved[plan.Apply(id)] = identity;
+        Devices = moved;
+
+        return plan;
+    }
 
     public (ushort Vid, ushort Pid, string Product) ResolveDevice()
     {

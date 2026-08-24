@@ -67,6 +67,8 @@ public static class Strings
         "StatusConfigurationSaved",
         "StatusFailedToStart",
         "StatusNoJoystick",
+        "StatusDevicesMoved",
+        "StatusDeviceMissing",
         "DeviceItem",
         "NotchSending",
         "NotchPreview",
@@ -102,6 +104,8 @@ public static class Strings
         "ConsoleRunVirtual",
         "ConsoleRunLine",
         "ConsoleStopped",
+        "ConsoleDeviceMoved",
+        "ConsoleDeviceMissing",
         "ConfigCreatedSample",
         "ConfigUnreadable",
     };
@@ -152,6 +156,8 @@ public static class Strings
     public static string StatusConfigurationSaved => Get(nameof(StatusConfigurationSaved));
     public static string StatusFailedToStart => Get(nameof(StatusFailedToStart));
     public static string StatusNoJoystick => Get(nameof(StatusNoJoystick));
+    public static string StatusDevicesMoved => Get(nameof(StatusDevicesMoved));
+    public static string StatusDeviceMissing => Get(nameof(StatusDeviceMissing));
     public static string DeviceItem => Get(nameof(DeviceItem));
     public static string NotchSending => Get(nameof(NotchSending));
     public static string NotchPreview => Get(nameof(NotchPreview));
@@ -187,6 +193,8 @@ public static class Strings
     public static string ConsoleRunVirtual => Get(nameof(ConsoleRunVirtual));
     public static string ConsoleRunLine => Get(nameof(ConsoleRunLine));
     public static string ConsoleStopped => Get(nameof(ConsoleStopped));
+    public static string ConsoleDeviceMoved => Get(nameof(ConsoleDeviceMoved));
+    public static string ConsoleDeviceMissing => Get(nameof(ConsoleDeviceMissing));
     public static string ConfigCreatedSample => Get(nameof(ConfigCreatedSample));
     public static string ConfigUnreadable => Get(nameof(ConfigUnreadable));
 }

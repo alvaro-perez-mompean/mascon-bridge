@@ -96,6 +96,14 @@ S = {
     "StatusConfigurationSaved": ("Configuration saved", "設定を保存しました"),
     "StatusFailedToStart": ("Failed to start", "開始できませんでした"),
     "StatusNoJoystick": ("No joystick detected", "ジョイスティックが見つかりません"),
+    "StatusDevicesMoved": (
+        "Joystick numbers changed, the settings followed",
+        "ジョイスティック番号が変わりました。設定も追随しました",
+    ),
+    "StatusDeviceMissing": (
+        "A joystick in the settings is not connected",
+        "設定にあるジョイスティックが接続されていません",
+    ),
 
     # --- readouts ----------------------------------------------------------
     "DeviceItem": (
@@ -217,6 +225,16 @@ S = {
         "  {0,-3}  0x{1:X2}   ボタン {2}",
     ),
     "ConsoleStopped": ("Stopped.", "停止しました。"),
+
+    # --- devices moving about ----------------------------------------------
+    "ConsoleDeviceMoved": (
+        "Joystick {0} is now {1} ({2}); the settings followed it.",
+        "ジョイスティック {0} は {1} になりました（{2}）。設定も追随しました。",
+    ),
+    "ConsoleDeviceMissing": (
+        "Joystick {0} ({1}) is not connected; its number was left alone.",
+        "ジョイスティック {0}（{1}）が接続されていません。番号はそのままにします。",
+    ),
 
     # --- config ------------------------------------------------------------
     "ConfigCreatedSample": (
