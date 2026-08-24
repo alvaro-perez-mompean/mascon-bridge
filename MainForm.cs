@@ -55,6 +55,10 @@ public sealed class MainForm : Form
     private readonly Label _lblStatus = new() { AutoSize = true, Text = "Stopped" };
     private readonly Label _lblPath = new() { AutoSize = true, ForeColor = SystemColors.GrayText };
 
+    // Explanatory labels. Their width is capped in OnLoad so that a long line
+    // wraps instead of stretching the whole window.
+    private readonly List<Label> _hints = new();
+
     private readonly System.Windows.Forms.Timer _timer = new() { Interval = 50 };
 
     private TableLayoutPanel _root = null!;
@@ -172,6 +176,7 @@ public sealed class MainForm : Form
             ForeColor = SystemColors.GrayText,
             Margin = new Padding(12, 7, 3, 3),
         };
+        _hints.Add(hint);
 
         gd.Controls.Add(Cap("Axis:"), 0, 1);
         gd.Controls.Add(_cboAxis, 1, 1);
@@ -270,9 +275,11 @@ public sealed class MainForm : Form
         root.Controls.Add(Group("Calibration", gc));
 
         // --- Virtual device ----------------------------------------------------
+        // Both columns AutoSize: a control spanning into a Percent column is not
+        // measured properly, and the hint below spans the pair.
         var gm = Grid(2);
         gm.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        gm.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        gm.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
         foreach (var m in Zuiki.KnownModels)
             _cboModel.Items.Add(new ModelItem(m.Model, $"{m.Model}   ·   {m.Vid:X4}:{m.Pid:X4}"));
@@ -287,12 +294,13 @@ public sealed class MainForm : Form
 
         var modelHint = new Label
         {
-            Text = "Steam recognises all six, but the game only reacts to the 33DD ones.\n"
-                 + $"{Zuiki.DefaultModel} is the one to use. Only change this if the game ignores the mascon.",
+            Text = $"{Zuiki.DefaultModel} is the default controller.\n"
+                 + "Only change this if the game ignores the mascon.",
             AutoSize = true,
             ForeColor = SystemColors.GrayText,
             Margin = new Padding(3, 8, 3, 3),
         };
+        _hints.Add(modelHint);
         gm.Controls.Add(modelHint, 0, 1);
         gm.SetColumnSpan(modelHint, 2);
 
@@ -615,7 +623,11 @@ public sealed class MainForm : Form
     {
         base.OnLoad(e);
 
+        // Cap the explanatory text so a long line wraps rather than widening the
+        // whole window. Without this, editing one sentence resizes the panel.
+        int cap = LogicalToDeviceUnits(640);
         _lblPath.MaximumSize = new Size(LogicalToDeviceUnits(640), 0);
+        foreach (var h in _hints) h.MaximumSize = new Size(cap, 0);
 
         // Size the window to what the layout engine actually measured, with this
         // display's font and scaling already applied.
