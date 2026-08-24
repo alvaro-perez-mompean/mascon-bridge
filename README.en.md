@@ -259,6 +259,7 @@ the driver with competitive titles that ship kernel level anti-cheat.
 | `mascon-bridge.cmd` | Convenience launcher for a source tree: elevates, then opens the executable from under `bin\`. Not needed with a release, where the executable is right there |
 | `try-model.ps1` | Switches `"Model"` and relaunches, to work through the six models |
 | `tests/` | xUnit suite over the hardware-independent logic |
+| `release-notes/` | The changelog for each tag. The release workflow puts `release-notes/<tag>.md` into the published notes, and falls back to the commit subjects if there is no file for that tag |
 | `Strings.*.resx` / `Strings.cs` | Every piece of text the program shows, and the typed accessor for it |
 | `Language.cs` | Which languages ship, and applying one |
 | `assets/` | `icon.svg` is the icon source; `build-icon.py` rasterises it into `mascon-bridge.ico`. `gen-strings.py` regenerates the resources and `Strings.cs` from one table |
