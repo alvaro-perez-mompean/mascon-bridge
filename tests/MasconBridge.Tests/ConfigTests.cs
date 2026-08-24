@@ -149,7 +149,10 @@ public class ConfigTests : IDisposable
             AxisMin = 123,
             AxisMax = 45678,
             Invert = true,
-            IncludeEmergencyInAxis = true,
+            PowerReleaseDeviceId = 3,
+            PowerReleaseButton = 5,
+            EmergencyReleaseDeviceId = 2,
+            EmergencyReleaseButton = 9,
             Hysteresis = 0.35,
             HatDeviceId = 3,
             Model = "ZKNS-002",
@@ -170,7 +173,10 @@ public class ConfigTests : IDisposable
         Assert.Equal(original.AxisMin, loaded.AxisMin);
         Assert.Equal(original.AxisMax, loaded.AxisMax);
         Assert.Equal(original.Invert, loaded.Invert);
-        Assert.Equal(original.IncludeEmergencyInAxis, loaded.IncludeEmergencyInAxis);
+        Assert.Equal(original.PowerReleaseDeviceId, loaded.PowerReleaseDeviceId);
+        Assert.Equal(original.PowerReleaseButton, loaded.PowerReleaseButton);
+        Assert.Equal(original.EmergencyReleaseDeviceId, loaded.EmergencyReleaseDeviceId);
+        Assert.Equal(original.EmergencyReleaseButton, loaded.EmergencyReleaseButton);
         Assert.Equal(original.Hysteresis, loaded.Hysteresis);
         Assert.Equal(original.HatDeviceId, loaded.HatDeviceId);
         Assert.Equal(original.Model, loaded.Model);
@@ -218,10 +224,10 @@ public class ConfigTests : IDisposable
         Assert.InRange(cfg.Hysteresis, 0, 0.49);
         Assert.True(cfg.PollMs > 0);
 
-        // The emergency brake must be reachable out of the box: either it sits on
-        // the handle, or some button is bound to it.
-        Assert.True(cfg.IncludeEmergencyInAxis
-                    || cfg.Buttons.Any(b => b.Mascon.Equals("EB", StringComparison.OrdinalIgnoreCase)));
+        // Neither catch is set up out of the box, so the handle covers the whole
+        // scale, emergency included, without needing a button to be found first.
+        Assert.True(cfg.PowerReleaseDeviceId < 0);
+        Assert.True(cfg.EmergencyReleaseDeviceId < 0);
     }
 
     [Fact]

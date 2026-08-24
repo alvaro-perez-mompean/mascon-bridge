@@ -125,9 +125,12 @@ panel:
   the bridge hardware agnostic: it learns your actual travel rather than assuming a
   range.
 - **Invert axis**, for levers whose travel runs the other way.
-- **EB on the handle** chooses between 15 notches (EB at the end of the travel, like
-  the real mascon) and 14 (B8 to P5, leaving EB to a button). Pick 15 if you need the
-  emergency brake to stay applied while you do something else.
+- **Handle catches**, optional, off by default. Both ends of the real handle are
+  protected against being reached by accident: a thumb button guards N to P1, and a
+  cam that has to be pushed past guards B8 to EB. An analogue lever cannot reproduce
+  the cam's extra force, so each becomes a button you choose by pressing it. Only
+  crossing is guarded: once across you can let go, and coming back sets the catch
+  again. Braking is never held back by the power catch.
 - The **current notch** in large type, live. This works with the bridge stopped, as a
   preview, so calibration and inversion can be checked without creating any device.
 - **Model**, which mascon to impersonate. Leave it alone unless the game ignores the
@@ -230,8 +233,8 @@ Calibrate again. If P5 still arrives early, trim `AxisMin`/`AxisMax` by hand —
 for levers with a dead zone or a spring detent at one end.
 
 **Emergency brake releases the instant you apply it.**
-The EB button is momentary. Tick **EB on the handle** so EB becomes a lever position
-instead, which is how the real mascon works.
+A button bound to `EB` is momentary. EB is also the last position of the handle, which
+is how the real mascon works, so put the lever there instead and it stays applied.
 
 **Nothing is detected as a controller at all.**
 Check that the bridge is started before Steam, and that Steam Input is enabled for the
@@ -255,7 +258,7 @@ the driver with competitive titles that ship kernel level anti-cheat.
 | `MainForm.cs` | The control panel |
 | `Theme.cs` | The palette, the type scale and the drawing helpers the window shares |
 | `NotchDisplay.cs` | The notch scale: EB, B8 to B1, N, P1 to P5, lit one at a time |
-| `Card.cs` / `AxisRow.cs` / `FlatButton.cs` / `StatusPill.cs` | The hand painted controls the panel is built from |
+| `Card.cs` / `AxisRow.cs` / `CatchRow.cs` / `FlatButton.cs` / `StatusPill.cs` | The hand painted controls the panel is built from |
 | `Config.cs` / `config.json` | Configuration |
 | `Program.cs` | Entry point and console modes |
 | `zuiki-zkns001.json` | The HIDMaestro profile as JSON, if you prefer loading it from disk |

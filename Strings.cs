@@ -39,10 +39,18 @@ public static class Strings
         "ButtonStopBridge",
         "ButtonSaveConfiguration",
         "CheckInvertAxis",
-        "CheckEbOnHandle",
+        "CheckPowerRelease",
+        "CheckEmergencyRelease",
+        "ButtonLearnRelease",
+        "ButtonLearnCancel",
         "HintAxis",
         "HintModel",
         "HintButtonsInFile",
+        "GroupCatches",
+        "HintCatches",
+        "HintReleaseNotSet",
+        "HintReleaseBinding",
+        "HintReleasePress",
         "HintLanguageRestart",
         "StatusStopped",
         "StatusBridgeRunning",
@@ -54,6 +62,8 @@ public static class Strings
         "DeviceItem",
         "NotchSending",
         "NotchPreview",
+        "NotchHeldAtNeutral",
+        "NotchHeldAtFullService",
         "NotchAxisMissing",
         "DialogCalibrationTitle",
         "DialogCalibrationNoMovement",
@@ -106,10 +116,18 @@ public static class Strings
     public static string ButtonStopBridge => Get(nameof(ButtonStopBridge));
     public static string ButtonSaveConfiguration => Get(nameof(ButtonSaveConfiguration));
     public static string CheckInvertAxis => Get(nameof(CheckInvertAxis));
-    public static string CheckEbOnHandle => Get(nameof(CheckEbOnHandle));
+    public static string CheckPowerRelease => Get(nameof(CheckPowerRelease));
+    public static string CheckEmergencyRelease => Get(nameof(CheckEmergencyRelease));
+    public static string ButtonLearnRelease => Get(nameof(ButtonLearnRelease));
+    public static string ButtonLearnCancel => Get(nameof(ButtonLearnCancel));
     public static string HintAxis => Get(nameof(HintAxis));
     public static string HintModel => Get(nameof(HintModel));
     public static string HintButtonsInFile => Get(nameof(HintButtonsInFile));
+    public static string GroupCatches => Get(nameof(GroupCatches));
+    public static string HintCatches => Get(nameof(HintCatches));
+    public static string HintReleaseNotSet => Get(nameof(HintReleaseNotSet));
+    public static string HintReleaseBinding => Get(nameof(HintReleaseBinding));
+    public static string HintReleasePress => Get(nameof(HintReleasePress));
     public static string HintLanguageRestart => Get(nameof(HintLanguageRestart));
     public static string StatusStopped => Get(nameof(StatusStopped));
     public static string StatusBridgeRunning => Get(nameof(StatusBridgeRunning));
@@ -121,6 +139,8 @@ public static class Strings
     public static string DeviceItem => Get(nameof(DeviceItem));
     public static string NotchSending => Get(nameof(NotchSending));
     public static string NotchPreview => Get(nameof(NotchPreview));
+    public static string NotchHeldAtNeutral => Get(nameof(NotchHeldAtNeutral));
+    public static string NotchHeldAtFullService => Get(nameof(NotchHeldAtFullService));
     public static string NotchAxisMissing => Get(nameof(NotchAxisMissing));
     public static string DialogCalibrationTitle => Get(nameof(DialogCalibrationTitle));
     public static string DialogCalibrationNoMovement => Get(nameof(DialogCalibrationNoMovement));

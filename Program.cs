@@ -219,13 +219,12 @@ static int CmdRun()
     var cfg = Config.Load(Config.DefaultPath);
     var (vid, pid, product) = cfg.ResolveDevice();
 
-    int firstNotch = cfg.IncludeEmergencyInAxis ? 0 : 1;
-    int zones = Zuiki.Notches.Length - firstNotch;
 
     Console.WriteLine(string.Format(Strings.ConsoleRunHandle,
         cfg.AxisDeviceId, cfg.AxisName, cfg.AxisMin, cfg.AxisMax,
         cfg.Invert ? Strings.ConsoleRunInverted : ""));
-    Console.WriteLine(string.Format(Strings.ConsoleRunZones, zones, Zuiki.Notches[firstNotch].Name));
+    Console.WriteLine(string.Format(Strings.ConsoleRunZones,
+        Zuiki.Notches.Length, Zuiki.Notches[0].Name));
     Console.WriteLine(string.Format(Strings.ConsoleRunVirtual, vid, pid, product));
     Console.WriteLine();
 

@@ -31,10 +31,11 @@ S = {
     "ButtonSaveConfiguration": ("Save configuration", "設定を保存"),
 
     "CheckInvertAxis": ("Invert axis", "軸を反転"),
-    "CheckEbOnHandle": (
-        "EB on the handle (15 notches instead of 14)",
-        "非常ブレーキをハンドルに含める（14 ノッチではなく 15 ノッチ）",
-    ),
+    "CheckPowerRelease": ("Power, N to P1", "力行、N から P1"),
+    "CheckEmergencyRelease": ("Emergency, B8 to EB", "非常、B8 から EB"),
+
+    "ButtonLearnRelease": ("Choose button", "ボタンを選ぶ"),
+    "ButtonLearnCancel": ("Cancel", "中止"),
 
     # --- hints -------------------------------------------------------------
     "HintAxis": (
@@ -49,6 +50,19 @@ S = {
         "Buttons and hat are edited in the file:",
         "ボタンとハットはファイルで編集します:",
     ),
+    "GroupCatches": ("Handle catches", "ハンドルの引っかかり"),
+    "HintCatches": (
+        "Tick an end to make the handle need a button before it may cross into it, as"
+        " the real mascon does. Only crossing is guarded: once across you can let go,"
+        " and coming back sets the catch again.",
+        "端にチェックを入れると、ハンドルがそこへ越えるときにボタンが必要になります。"
+        "実車の親指ボタンと、非常側の押し込むカムにあたります。守られているのは越える"
+        "ときだけで、越えたあとは離してかまいません。戻ればまた掛かります。",
+    ),
+    "HintReleaseNotSet": ("no button chosen", "ボタン未設定"),
+    "HintReleaseBinding": ("device {0}, button {1}", "デバイス {0}・ボタン {1}"),
+    "HintReleasePress": ("Press the button you want to use.", "使いたいボタンを押してください。"),
+
     "HintLanguageRestart": (
         "The window reopens when you change this.",
         "変更するとウィンドウが開き直します。",
@@ -78,6 +92,14 @@ S = {
     "NotchPreview": (
         "axis {0}   ·   {1:F1}% of travel   ·   preview, the bridge is stopped",
         "軸 {0}   ·   全体の {1:F1}%   ·   プレビュー（ブリッジは停止中）",
+    ),
+    "NotchHeldAtNeutral": (
+        "held at N   ·   press the button to enter power",
+        "N で保持中   ·   力行に入るにはボタンを押してください",
+    ),
+    "NotchHeldAtFullService": (
+        "held at B8   ·   press the button to reach emergency",
+        "B8 で保持中   ·   非常ブレーキに入れるにはボタンを押してください",
     ),
     "NotchAxisMissing": (
         "the selected axis does not exist on this device",

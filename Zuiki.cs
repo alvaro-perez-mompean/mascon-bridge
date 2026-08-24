@@ -41,6 +41,15 @@ public static class Zuiki
         ("P1", 0x9F), ("P2", 0xB7), ("P3", 0xCE), ("P4", 0xE6), ("P5", 0xFF),
     };
 
+    /// <summary>Where N sits in <see cref="Notches"/>. Derived from the table above.</summary>
+    public static readonly int NeutralIndex = Array.FindIndex(Notches, n => n.Name == "N");
+
+    /// <summary>
+    /// Full service braking, B8. The last position before emergency, and where the
+    /// handle is held when the emergency catch has not been released.
+    /// </summary>
+    public static readonly int FullServiceIndex = Array.FindIndex(Notches, n => n.Name == "B8");
+
     /// <summary>
     /// The model to emulate unless told otherwise. Steam recognises all six, but the
     /// game only reacts to the ones on ZUIKI's own 33DD vendor id. ZKNS-001 carries

@@ -27,7 +27,8 @@ internal sealed class NotchDisplay : Control
     private readonly int _leading;
 
     private int _index = -1;
-    private bool _ebOnHandle = true;
+    private bool _emergencyHeld;
+    private bool _powerHeld;
     private string _detail = string.Empty;
 
     public NotchDisplay(string caption)
@@ -62,13 +63,24 @@ internal sealed class NotchDisplay : Control
     }
 
     /// <summary>
-    /// When the handle stops at B8, EB is still reachable from a button, so it stays
-    /// on the scale as an outline rather than disappearing from it.
+    /// True while the catch is holding the handle at B8. EB keeps its place on the
+    /// scale as an outline: it is still there, it is just not being allowed.
     /// </summary>
-    public bool EbOnHandle
+    public bool EmergencyHeld
     {
-        get => _ebOnHandle;
-        set { if (_ebOnHandle == value) return; _ebOnHandle = value; Invalidate(); }
+        get => _emergencyHeld;
+        set { if (_emergencyHeld == value) return; _emergencyHeld = value; Invalidate(); }
+    }
+
+    /// <summary>
+    /// True while the release button is holding the handle at N. The power steps go
+    /// back to outlines, the same way EB does: the shape stays, so what is being
+    /// withheld is still legible.
+    /// </summary>
+    public bool PowerHeld
+    {
+        get => _powerHeld;
+        set { if (_powerHeld == value) return; _powerHeld = value; Invalidate(); }
     }
 
     public string Detail
@@ -152,6 +164,15 @@ internal sealed class NotchDisplay : Control
             new Rectangle(_pad, y, Width - _pad * 2, line), Theme.PanelMuted,
             TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter | TextFormatFlags.Right);
 
+        if (_powerHeld || _emergencyHeld)
+        {
+            int glyph = Theme.LineHeight(_captionFont);
+            int right = Width - _pad - Theme.Measure(Caption, _captionFont).Width
+                        - LogicalToDeviceUnits(8);
+            PaintPadlock(g, new Rectangle(right - glyph, y + (line - glyph) / 2, glyph, glyph),
+                Theme.Blend(Theme.Emergency, Theme.Panel, 0.2));
+        }
+
         return y + line + LogicalToDeviceUnits(13);
     }
 
@@ -176,7 +197,8 @@ internal sealed class NotchDisplay : Control
             var r = new RectangleF(left + i * (cell + _cellGap), y, cell, _wellHeight);
             var colour = NotchColour(i);
             bool live = i == _index;
-            bool onHandle = i > 0 || _ebOnHandle;
+            bool onHandle = !(_emergencyHeld && i < Zuiki.FullServiceIndex)
+                            && !(_powerHeld && i > Zuiki.NeutralIndex);
 
             if (live)
                 PaintLive(g, r, radius, colour);
@@ -193,6 +215,25 @@ internal sealed class NotchDisplay : Control
         }
 
         return labelTop + labelLine + LogicalToDeviceUnits(13);
+    }
+
+    /// <summary>
+    /// Drawn rather than typed: the padlock characters render as colour emoji in
+    /// some Windows fonts, and drawing keeps it sized from the caption's own font.
+    /// </summary>
+    private static void PaintPadlock(Graphics g, Rectangle r, Color colour)
+    {
+        float thickness = Math.Max(1.2f, r.Height / 9f);
+        float bodyTop = r.Y + r.Height * 0.46f;
+        var body = new RectangleF(r.X + r.Width * 0.12f, bodyTop,
+            r.Width * 0.76f, r.Bottom - bodyTop);
+
+        using var pen = new Pen(colour, thickness) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        var shackle = new RectangleF(r.X + r.Width * 0.27f, r.Y + thickness / 2f,
+            r.Width * 0.46f, r.Height * 0.52f);
+        g.DrawArc(pen, shackle, 180f, 180f);
+
+        Theme.FillRound(g, body, Math.Max(1f, r.Width * 0.14f), colour);
     }
 
     private void PaintLive(Graphics g, RectangleF r, float radius, Color colour)
