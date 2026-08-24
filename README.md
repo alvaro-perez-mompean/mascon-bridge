@@ -5,30 +5,34 @@
 <h1 align="center">mascon-bridge</h1>
 
 <p align="center">
-  <strong>Any analogue lever as a virtual ZUIKI mascon</strong>
+  <strong>任意のアナログレバーを ZUIKI マスコンとして使う</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/alvaro-perez-mompean/mascon-bridge/actions/workflows/ci.yml"><img src="https://github.com/alvaro-perez-mompean/mascon-bridge/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/alvaro-perez-mompean/mascon-bridge/releases/latest"><img src="https://img.shields.io/github/v/release/alvaro-perez-mompean/mascon-bridge" alt="Latest release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue" alt="MIT licence"></a>
+  <a href="https://github.com/alvaro-perez-mompean/mascon-bridge/releases/latest"><img src="https://img.shields.io/github/v/release/alvaro-perez-mompean/mascon-bridge" alt="最新リリース"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue" alt="MIT ライセンス"></a>
 </p>
 
-Maps an analogue axis on any joystick, throttle or lever to a virtual **ZUIKI One
-Handle MasCon**, so that JR EAST Train Simulator reads the **absolute position** of
-your hardware instead of simulated keystrokes.
+<p align="center">
+  <strong>日本語</strong> · <a href="README.en.md">English</a>
+</p>
 
-If Windows shows it in `joy.cpl` and it has an analogue axis, it will work: a HOTAS
-throttle, a flight stick, a racing wheel, a slider box, a set of pedals, a homemade
-controller. The bridge does not care what the device is — it reads one axis, splits
-the travel into notches and publishes them as a mascon.
+ジョイスティック、スロットル、レバーのアナログ軸を仮想の **ZUIKI ワンハンドルマスコン**
+に変換します。これにより JR EAST Train Simulator が、キー入力の再現ではなく
+ハンドルの**絶対位置**を読み取るようになります。
 
-## How it works
+`joy.cpl` に表示され、アナログ軸を 1 本でも持つ機器であれば動作します。HOTAS の
+スロットル、フライトスティック、レーシングホイール、スライダーボックス、ペダル、
+自作コントローラーなど、機器の種類は問いません。軸を 1 本読み取り、その可動域を
+ノッチに分割してマスコンとして出力するだけだからです。
 
-The ZUIKI mascon is an ordinary HID joystick with one peculiarity: its handle is the
-**Y axis**, and every notch reports **a fixed byte value**, with nothing in between:
+## 仕組み
 
-| Notch | Value | Notch | Value | Notch | Value |
+ZUIKI のマスコンは、ひとつの特徴を除けば普通の HID ジョイスティックです。ハンドルが
+**Y 軸**に割り当てられ、各ノッチが**固定のバイト値**を返し、その中間の値は存在しません。
+
+| ノッチ | 値 | ノッチ | 値 | ノッチ | 値 |
 |---|---|---|---|---|---|
 | EB | 0x00 | B4 | 0x3C | P1 | 0x9F |
 | B8 | 0x05 | B3 | 0x49 | P2 | 0xB7 |
@@ -36,236 +40,194 @@ The ZUIKI mascon is an ordinary HID joystick with one peculiarity: its handle is
 | B6 | 0x20 | B1 | 0x65 | P4 | 0xE6 |
 | B5 | 0x2E | N  | 0x80 | P5 | 0xFF |
 
-The bridge uses **HIDMaestro** to create a virtual HID device with the **same VID/PID
-and descriptor** as the real mascon (94 bytes, included in the source), reads your
-chosen axis and publishes the matching notch value. Windows, Steam and the game all
-see a mascon. No keys, no counting presses, nothing to fall out of sync.
+本ソフトは **HIDMaestro** を使い、実機と**同一の VID/PID と HID ディスクリプタ**
+（94 バイト、ソースに同梱）を持つ仮想 HID デバイスを作成します。選択した軸を読み取り、
+対応するノッチ値を出力するため、Windows も Steam もゲームもマスコンとして認識します。
+キー入力も、押した回数の管理も、ずれの心配もありません。
 
-Buttons and a hat can be mapped too, from the same device or a different one — useful
-when the lever and the buttons live on separate pieces of hardware.
+ボタンとハットも割り当てられます。レバーとは別の機器からでも指定できるため、
+ハンドルとボタンが別々のハードウェアにある構成でも使えます。
 
-## Install
+## インストール
 
-Grab the latest zip from [Releases](https://github.com/alvaro-perez-mompean/mascon-bridge/releases),
-unzip it and run **`mascon-bridge.exe`**.
+[Releases](https://github.com/alvaro-perez-mompean/mascon-bridge/releases) から最新の
+zip をダウンロードし、展開して **`mascon-bridge.exe`** を実行してください。
 
-That is the executable itself, sitting in the root of the zip. The `.cmd` file next
-to it is a convenience for running from a source tree, where the executable is buried
-several folders deep under `bin\`; from the zip there is nothing for it to do.
+これだけです。.NET ランタイムも HIDMaestro も同梱されており、HID ドライバーは初回起動時に
+本ソフトが自動でインストールします。必要なのは管理者権限の確認だけで、別途ダウンロードする
+ものも、手動で用意する証明書もありません。zip が約 90 MB あるのはそのためです。
 
-That really is everything. The .NET runtime is bundled, HIDMaestro is bundled, and
-the bridge installs the HID driver itself the first time it starts — you only have to
-accept the administrator prompt. There is nothing to download separately and no
-certificate to set up by hand. That is what makes the zip around 90 MB.
+ソースからのビルドは別の手順です。後述します。
 
-Building from source is a separate path, described further down.
+## 動作環境
 
-## Requirements
+- Windows 10 または 11 の **x64**
+- `joy.cpl` に表示され、アナログ軸を 1 本以上持つジョイスティック類
+- 管理者権限（ドライバーのインストール時と、毎回の起動時）
+- ソースからビルドする場合は **.NET 10 SDK** — <https://dotnet.microsoft.com/download>
+  リリース版の zip を使う場合は不要です。
 
-- Windows 10 or 11 **x64**
-- Any joystick-class device with at least one analogue axis, visible in `joy.cpl`
-- Administrator rights (the driver install, and every run)
-- **.NET 10 SDK** to build from source — <https://dotnet.microsoft.com/download>.
-  Not needed if you use a release zip.
+再起動も、Windows のテスト署名モードも、カーネルドライバーも不要です。HIDMaestro は
+ユーザーモードで動作する UMDF2 を使用します。
 
-No reboot, no Windows test signing mode and no kernel driver: HIDMaestro uses UMDF2,
-which runs in user mode.
+動作確認は Thrustmaster T.16000M FCS HOTAS で行いました。TWCS スロットルのレバーを
+ハンドルに、スティックをボタンとハットに割り当てています。ただし、この機種に依存した
+コードは一切ありません。
 
-Developed and tested against a Thrustmaster T.16000M FCS HOTAS, using the TWCS
-throttle lever for the handle and the stick for buttons and hat. Nothing in the code
-is specific to it.
+## 使い方
 
-## Build from source
+**`mascon-bridge.exe`** を実行し、UAC の確認を承認すると設定ウィンドウが開きます。
 
-**Skip this whole section if you downloaded a release.** None of it is needed: the
-zip already carries `HIDMaestro.Core.dll`, and the bridge installs the driver itself
-on the first run.
+- **デバイス**と**軸**の選択。選んだデバイスの 6 軸すべてがリアルタイムで表示されるので、
+  レバーを動かしてどれが反応するか見れば分かります。機器名はあてにならないため、
+  これが確実な方法です。
+- **測定開始**：押してレバーを端から端まで動かし、測定終了を押します。可動域を実測する
+  ため、機種を問わず動作します。
+- **軸を反転**：可動方向が逆のレバー向け。
+- **非常ブレーキをハンドルに含める**：15 ノッチ（実機同様、可動域の端が EB）と
+  14 ノッチ（B8〜P5、EB はボタン）を切り替えます。他の操作をしている間も非常ブレーキを
+  かけ続けたい場合は 15 を選んでください。
+- **現在のノッチ**を大きく表示します。ブリッジ停止中もプレビューとして動作するため、
+  仮想デバイスを作らずにキャリブレーションと反転を確認できます。
+- **機種**：どのマスコンとして振る舞うか。ゲームが認識しない場合以外は変更不要です。後述します。
+- **言語**：ウィンドウ上部にあります。後述します。
+- **ブリッジを開始**したあと、Steam、ゲームの順に起動してください。ゲームは起動時に
+  コントローラーを列挙します。
 
-`HIDMaestro.Core.dll` is a third party binary of about 40 MB and is not committed, so
-a clone has to fetch it before it will build:
+Steam のゲームのプロパティでは、**Steam Input を有効のままにしてください**。JR East の
+公式コントローラーとは逆で、ZUIKI マスコンには必要です。
 
-1. Download the latest HIDMaestro release from
-   <https://github.com/hifihedgehog/HIDMaestro/releases>.
-2. Copy `HIDMaestro.Core.dll` out of the zip into this project's `lib\` folder.
-3. Build:
+`config.json` は初回起動時に作成され、リポジトリには含まれません。特定の PC のデバイス番号と
+キャリブレーション結果が入るためです。最初からやり直したい場合は削除してください。
 
-   ```
-   cd mascon-bridge
-   dotnet build -c Release
-   ```
+ボタンとハットは `config.json` で設定します。各項目で物理デバイスとボタン番号、
+割り当て先のマスコンのボタン（`Y`、`B`、`A`、`X`、`L`、`R`、`ZL`、`ZR`、`Minus`、`Plus`、
+`Home`、`Capture`、非常ブレーキは `EB`）を指定します。複数の物理ボタンを同じマスコンの
+ボタンに割り当てることもできます。
 
-   The executable lands in
-   `bin\Release\net10.0-windows10.0.26100.0\win-x64\mascon-bridge.exe`.
+### 言語
 
-### Checking the driver on its own
+本ソフトは**既定で日本語**です。ウィンドウ上部の選択欄から English に切り替えられます。
+選択内容は `config.json` に `"Language": "ja"` または `"en"` として保存され、
+ウィンドウはすぐに新しい言語で開き直します。
 
-Not a required step, but a quick way to tell a driver problem from a bridge problem:
-run `HIDMaestroTest.exe emulate xbox-360-wired` once **as administrator**. It
-generates the certificate, signs and installs the driver, exactly as the bridge does
-at startup. If an Xbox pad appears in `joy.cpl`, the driver side is fine and anything
-still broken is this project's fault. Type `quit` to exit.
+ウィンドウ、ダイアログ、コンソールモードまですべて翻訳されています。言語名は常に
+その言語自身で表記されるため、読めない言語で開いてしまっても自分の言語を見つけられます。
 
-## Use
+### コンソールモード
 
-Double click **`mascon-bridge.exe`** and accept the UAC prompt. It opens the control
-panel:
-
-- **Device** and **Axis** dropdowns. All six axes of the selected device are shown
-  live, so you can move your lever and see which one responds — devices rarely report
-  a useful name, so this is the reliable way to identify both.
-- **Calibrate**: press it, move the lever end to end, press Finish. This is what makes
-  the bridge hardware agnostic: it learns your actual travel rather than assuming a
-  range.
-- **Invert axis**, for levers whose travel runs the other way.
-- **EB on the handle** chooses between 15 notches (EB at the end of the travel, like
-  the real mascon) and 14 (B8 to P5, leaving EB to a button). Pick 15 if you need the
-  emergency brake to stay applied while you do something else.
-- The **current notch** in large type, live. This works with the bridge stopped, as a
-  preview, so calibration and inversion can be checked without creating any device.
-- **Model**, which mascon to impersonate. Leave it alone unless the game ignores the
-  bridge; see below.
-- **Start bridge**, then launch Steam and the game, in that order — the game enumerates
-  controllers at startup.
-- **Language**, at the top of the window. See below.
-
-In the game's Steam properties, **leave Steam Input enabled**. Unlike the official JR
-East controller, the ZUIKI mascon needs it.
-
-`config.json` is written on first run and is not part of the repository — it holds the
-device numbers and calibration of one particular machine. Delete it to start over.
-
-Buttons and the hat are configured in `config.json`. Each entry names a physical device
-and button number and the mascon button it maps to (`Y`, `B`, `A`, `X`, `L`, `R`, `ZL`,
-`ZR`, `Minus`, `Plus`, `Home`, `Capture`, or `EB` for the emergency brake). Several
-physical buttons may map to the same mascon button.
-
-### Language
-
-The program speaks **Japanese by default**, and English if you pick it from the
-selector at the top of the window. The choice is remembered in `config.json` as
-`"Language": "ja"` or `"en"`, and the window reopens in the new language straight
-away.
-
-Everything is translated: the window, the dialogs and the console modes. Language
-names are always written in their own language, so the list is readable whichever
-one the program happens to be in.
-
-### Console modes
-
-The window covers everyday use. The console modes remain, for diagnosis:
+通常の操作はウィンドウで完結します。コンソールモードは診断用に残しています。
 
 ```
-mascon-bridge.exe list       live view of joysticks, axes and buttons
-mascon-bridge.exe calibrate  measures the lever travel, writes it to config.json
-mascon-bridge.exe test       cycles the notches on its own, without any joystick
-mascon-bridge.exe run        normal mode, no window
+mascon-bridge.exe list       ジョイスティック、軸、ボタンをリアルタイム表示
+mascon-bridge.exe calibrate  レバーの可動域を測定し config.json に保存
+mascon-bridge.exe test       ジョイスティックなしでノッチを順に送る
+mascon-bridge.exe run        通常動作、ウィンドウなし
 ```
 
-## Tests
+## 機種の選択
 
-```
-dotnet test mascon-bridge.slnx
-```
+ウィンドウの**機種**の選択欄で、どのマスコンとして振る舞うかを指定します。`config.json` の
+`"Model"` と同じ項目です。
 
-126 tests over the parts that can be checked without hardware: the notch table and
-report packing, the axis maths and hysteresis, configuration round trips and model
-resolution, and the winmm helpers for hat and buttons. Device enumeration and the
-HIDMaestro calls need real hardware and are left out.
-
-The tests reference the main project, so `lib\HIDMaestro.Core.dll` has to be in place
-before they will build — the same prerequisite as building the app. CI downloads that
-DLL from the pinned HIDMaestro release, checks its SHA256 and caches it, so a clean
-clone needs nothing extra.
-
-## Choosing the model
-
-The **Model** dropdown in the control panel picks which mascon to impersonate. It is
-also `"Model"` in `config.json`.
-
-| Model | VID | PID | |
+| 機種 | VID | PID | |
 |---|---|---|---|
-| ZKNS-001 | 0x0F0D | 0x00C1 | Nintendo's vendor id |
+| ZKNS-001 | 0x0F0D | 0x00C1 | 任天堂のベンダー ID |
 | ZKNS-001b | 0x33DD | 0x0001 | |
-| **ZKNS-002** | **0x33DD** | **0x0002** | **default** |
+| **ZKNS-002** | **0x33DD** | **0x0002** | **既定** |
 | ZKNS-011 | 0x33DD | 0x0003 | |
 | ZKNS-012 | 0x33DD | 0x0004 | |
 | ZKNS-013 | 0x33DD | 0x0005 | |
 
-**`ZKNS-002` is the default and should just work.** Steam recognising the device is not
-the same as the game accepting it: `ZKNS-001` shows up perfectly in *Steam → Settings →
-Controller* and the game still ignores it. Its `0x0F0D` is Nintendo's vendor id,
-inherited from the Switch pad; the `0x33DD` ids belong to ZUIKI.
+**既定の `ZKNS-002` でそのまま動くはずです。** Steam が認識することと、ゲームが受け付ける
+ことは別です。`ZKNS-001` は *Steam → 設定 → コントローラ* に問題なく表示されますが、
+ゲームは無視します。`0x0F0D` は Switch のコントローラーから受け継いだ任天堂のベンダー ID で、
+`0x33DD` が ZUIKI のものだからです。
 
-If the game does not react, work through the other `33DD` models before suspecting
-anything else. Close and reopen the game on each round — it enumerates controllers at
-startup, so switching model while it runs proves nothing.
+ゲームが反応しない場合は、他を疑う前にまず `33DD` の機種を順に試してください。毎回ゲームを
+終了して起動し直す必要があります。起動時にコントローラーを列挙するため、起動したまま機種を
+変えても意味がありません。
 
-`try-model.ps1` automates that loop from a console:
+コンソールから試す場合は `try-model.ps1` が自動化します。
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
 .\try-model.ps1 ZKNS-011
 ```
 
-## Troubleshooting
+## うまくいかないとき
 
-**The game reacts to both your physical device and the virtual mascon.**
-Install [HidHide](https://github.com/nefarius/HidHide) and hide your controller from
-applications, leaving only the virtual mascon visible.
+**ゲームが HOTAS と仮想マスコンの両方に反応する。**
+[HidHide](https://github.com/nefarius/HidHide) をインストールし、使用中のコントローラーを
+アプリケーションから隠して、仮想マスコンだけが見えるようにしてください。
 
-**The lever jumps two notches at once, or flickers at an edge.**
-Raise `Hysteresis` to 0.35. It is the fraction of a zone you must cross to change notch.
-Cheap or worn potentiometers need more; a smooth lever can go lower.
+**ノッチが 2 つ飛ぶ、または境目でちらつく。**
+`Hysteresis` を 0.35 に上げてください。ノッチを切り替えるために越える必要がある、
+1 ゾーンに対する割合です。安価なものや摩耗した可変抵抗ほど大きな値が必要になります。
 
-**The notches are not spread evenly over the travel.**
-Calibrate again. If P5 still arrives early, trim `AxisMin`/`AxisMax` by hand — useful
-for levers with a dead zone or a spring detent at one end.
+**ノッチが可動域に均等に配置されない。**
+もう一度キャリブレーションしてください。それでも P5 に早く到達する場合は、`AxisMin` と
+`AxisMax` を手動で詰めてください。片側に遊びやばねの節度がある機器で有効です。
 
-**Emergency brake releases the instant you apply it.**
-The EB button is momentary. Tick **EB on the handle** so EB becomes a lever position
-instead, which is how the real mascon works.
+**非常ブレーキをかけた瞬間に解除される。**
+EB ボタンは押している間だけ有効です。**非常ブレーキをハンドルに含める**を有効にすると、
+実機と同じくハンドルの位置として扱われます。
 
-**Nothing is detected as a controller at all.**
-Check that the bridge is started before Steam, and that Steam Input is enabled for the
-game. Then try the other models.
+**コントローラーとしてまったく認識されない。**
+Steam より先にブリッジを起動しているか、ゲームで Steam Input が有効かを確認し、
+そのうえで他の機種を試してください。
 
-**The axis moves in `joy.cpl` but the window shows nothing.**
-Wrong device or wrong axis. Move your lever and watch which of the six rows changes.
+**`joy.cpl` では軸が動くのに、ウィンドウには何も出ない。**
+デバイスか軸の選択が違います。レバーを動かし、6 行のうちどれが変化するか確認してください。
 
-**Anti-cheat.**
-HIDMaestro does not hide that the device is virtual. Fine for this game, but do not use
-the driver with competitive titles that ship kernel level anti-cheat.
+**アンチチート。**
+HIDMaestro は仮想デバイスであることを隠しません。本ソフトの用途では問題ありませんが、
+カーネルレベルのアンチチートを備えた対戦ゲームでは使用しないでください。
 
-## Layout
+## ソースからのビルド
 
-| File | What it is |
-|---|---|
-| `Zuiki.cs` | HID descriptor, notch table, report format |
-| `Joystick.cs` | Joystick input through winmm, no dependencies |
-| `VirtualMascon.cs` | HIDMaestro wrapper |
-| `BridgeRunner.cs` | The bridge loop, zone splitting and hysteresis, shared by console and window |
-| `MainForm.cs` | The control panel |
-| `Config.cs` / `config.json` | Configuration |
-| `Program.cs` | Entry point and console modes |
-| `zuiki-zkns001.json` | The HIDMaestro profile as JSON, if you prefer loading it from disk |
-| `mascon-bridge.cmd` | Convenience launcher for a source tree: elevates, then opens the executable from under `bin\`. Not needed with a release, where the executable is right there |
-| `try-model.ps1` | Switches `"Model"` and relaunches, to work through the six models |
-| `tests/` | xUnit suite over the hardware-independent logic |
-| `Strings.*.resx` / `Strings.cs` | Every piece of text the program shows, and the typed accessor for it |
-| `Language.cs` | Which languages ship, and applying one |
-| `assets/` | `icon.svg` is the icon source; `build-icon.py` rasterises it into `mascon-bridge.ico`. `gen-strings.py` regenerates the resources and `Strings.cs` from one table |
+**リリース版をダウンロードした場合、この節は不要です。** zip には
+`HIDMaestro.Core.dll` が同梱されており、ドライバーも初回起動時に自動で入ります。
 
-## License
+`HIDMaestro.Core.dll` は約 40 MB のサードパーティ製バイナリでリポジトリには含まれないため、
+クローンからビルドするには先に取得する必要があります。
 
-MIT. See [LICENSE](LICENSE).
+1. [HIDMaestro のリリース](https://github.com/hifihedgehog/HIDMaestro/releases)から
+   最新版をダウンロードします。
+2. zip から `HIDMaestro.Core.dll` を取り出し、本プロジェクトの `lib\` に置きます。
+3. ビルドします。
 
-The HIDMaestro binary this project links against is third party and carries its own
-licence; it is downloaded rather than redistributed here.
+   ```
+   cd mascon-bridge
+   dotnet build -c Release
+   ```
 
-## Sources
+   実行ファイルは
+   `bin\Release\net10.0-windows10.0.26100.0\win-x64\mascon-bridge.exe` に生成されます。
 
-- Train Controller Database — ZKNS-001 entry and HID descriptor:
+テストの実行:
+
+```
+dotnet test mascon-bridge.slnx
+```
+
+ハードウェアなしで確認できる範囲を対象としています。ノッチ表とレポートの組み立て、
+軸の計算とヒステリシス、設定の保存と読み込み、機種の解決、ハットとボタンの winmm 補助関数です。
+デバイスの列挙と HIDMaestro の呼び出しは実機が必要なため対象外です。
+
+各ファイルの役割や、より詳しい背景は[英語版 README](README.en.md) を参照してください。
+
+## ライセンス
+
+MIT。[LICENSE](LICENSE) を参照してください。
+
+本ソフトがリンクする HIDMaestro のバイナリはサードパーティ製で、独自のライセンスに従います。
+再配布ではなくダウンロードして取得しています。
+
+## 出典
+
+- Train Controller Database — ZKNS-001 の情報と HID ディスクリプタ:
   <https://traincontrollerdb.marcriera.cat/hardware/zkns001/>
-- `cracrayol/ConToJREts` — notch value table and button map:
+- `cracrayol/ConToJREts` — ノッチ値の表とボタン割り当て:
   <https://github.com/cracrayol/ConToJREts>
 - HIDMaestro: <https://github.com/hifihedgehog/HIDMaestro>
