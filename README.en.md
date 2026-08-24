@@ -169,10 +169,16 @@ The window shows the file it is using along the bottom. `--config <path>` uses a
 different one, for keeping several setups or working in a source tree. Delete the file
 to start over.
 
-Buttons and the hat are configured in `config.json`. Each entry names a physical device
-and button number and the mascon button it maps to (`Y`, `B`, `A`, `X`, `L`, `R`, `ZL`,
-`ZR`, `Minus`, `Plus`, `Home`, `Capture`, or `EB` for the emergency brake). Several
-physical buttons may map to the same mascon button.
+**Buttons and the hat** are set from the window: **Set buttons...** opens a page with
+the mascon's twelve buttons, `EB` for the emergency brake, and the hat. Pick one, press
+the button you want on your hardware, and it is bound. Nothing is bound out of the box —
+guessing which button of yours is `A` would only fire something in the game with nothing
+on screen to explain it.
+
+The same mascon button can be reached from several physical buttons, on different
+devices if you like: pressing another one adds it rather than replacing what is there.
+**Clear** drops every button bound to that one. It is all still `config.json` underneath,
+and editing it by hand keeps working.
 
 ### Language
 

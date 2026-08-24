@@ -52,10 +52,7 @@ S = {
         "{0} is the default controller.\nOnly change this if the game ignores the mascon.",
         "{0} が既定のコントローラーです。\nゲームがマスコンを認識しない場合のみ変更してください。",
     ),
-    "HintButtonsInFile": (
-        "Buttons and hat are edited in the file:",
-        "ボタンとハットはファイルで編集します:",
-    ),
+    "HintButtonsInFile": ("Settings file:", "設定ファイル:"),
     "GroupCatches": ("Handle catches", "ハンドルの引っかかり"),
     "GroupOverlay": ("Overlay", "オーバーレイ"),
     "HintOverlay": (
@@ -75,6 +72,30 @@ S = {
     "HintReleaseNotSet": ("no button chosen", "ボタン未設定"),
     "HintReleaseBinding": ("device {0}, button {1}", "デバイス {0}・ボタン {1}"),
     "HintReleasePress": ("Press the button you want to use.", "使いたいボタンを押してください。"),
+
+    # --- buttons and hat ---------------------------------------------------
+    "ButtonEditBindings": ("Set buttons...", "ボタンを設定..."),
+    "DialogBindingsTitle": ("Buttons and hat", "ボタンとハット"),
+    "DialogBindingsHint": (
+        "Pick a mascon button, then press the one you want on your hardware. "
+        "A mascon button can carry more than one.",
+        "マスコン側のボタンを選び、割り当てたいボタンを手元の機器で押してください。"
+        "1 つのボタンに複数を割り当てられます。",
+    ),
+    "LabelHat": ("Hat", "ハット"),
+    "HintHatBinding": ("device {0}", "デバイス {0}"),
+    "HintHatPress": (
+        "Press any button on the device whose hat you want.",
+        "使いたいハットが付いている機器の、どれかのボタンを押してください。",
+    ),
+    "HintBindingNone": ("not assigned", "未割り当て"),
+    "ButtonClearBinding": ("Clear", "消す"),
+    "ButtonDialogOk": ("OK", "OK"),
+    "ButtonDialogCancel": ("Cancel", "キャンセル"),
+    "HintEmergencyButton": (
+        "EB applies the emergency brake while it is held.",
+        "EB は押している間だけ非常ブレーキがかかります。",
+    ),
 
     "LabelVersion": ("version {0}", "バージョン {0}"),
     "LinkUpdateAvailable": ("version {0} is available", "バージョン {0} が公開されています"),
