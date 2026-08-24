@@ -16,6 +16,11 @@ public sealed class MainForm : Form
         public override string ToString() => Text;
     }
 
+    private sealed record ModelItem(string Model, string Text)
+    {
+        public override string ToString() => Text;
+    }
+
     private readonly ComboBox _cboDevice = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly ComboBox _cboAxis = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly Button _btnRefresh = new() { Text = "Refresh", AutoSize = true };
@@ -35,6 +40,8 @@ public sealed class MainForm : Form
     {
         DecimalPlaces = 2, Increment = 0.05M, Minimum = 0M, Maximum = 0.49M, Width = 70,
     };
+
+    private readonly ComboBox _cboModel = new() { DropDownStyle = ComboBoxStyle.DropDownList };
 
     private readonly Label _lblNotch = new() { AutoSize = true };
     private readonly Label _lblRaw = new() { AutoSize = true, ForeColor = SystemColors.GrayText };
@@ -262,6 +269,35 @@ public sealed class MainForm : Form
 
         root.Controls.Add(Group("Calibration", gc));
 
+        // --- Virtual device ----------------------------------------------------
+        var gm = Grid(2);
+        gm.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        gm.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+        foreach (var m in Zuiki.KnownModels)
+            _cboModel.Items.Add(new ModelItem(m.Model, $"{m.Model}   ·   {m.Vid:X4}:{m.Pid:X4}"));
+
+        _cboModel.Anchor = AnchorStyles.Left;
+        _cboModel.Width = 200;
+        _cboModel.Margin = new Padding(3, 3, 12, 3);
+        _cboModel.SelectedIndexChanged += (_, _) => _cfg.Model = SelectedModel();
+
+        gm.Controls.Add(Cap("Model:"), 0, 0);
+        gm.Controls.Add(_cboModel, 1, 0);
+
+        var modelHint = new Label
+        {
+            Text = "Steam recognises all six, but the game only reacts to the 33DD ones.\n"
+                 + $"{Zuiki.DefaultModel} is the one to use. Only change this if the game ignores the mascon.",
+            AutoSize = true,
+            ForeColor = SystemColors.GrayText,
+            Margin = new Padding(3, 8, 3, 3),
+        };
+        gm.Controls.Add(modelHint, 0, 1);
+        gm.SetColumnSpan(modelHint, 2);
+
+        root.Controls.Add(Group("Virtual device", gm));
+
         // --- Current notch -----------------------------------------------------
         var gr = Grid(1);
         gr.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
@@ -353,18 +389,40 @@ public sealed class MainForm : Form
 
     private string SelectedAxis() => _cboAxis.SelectedItem as string ?? "Z";
 
+    private string SelectedModel() =>
+        _cboModel.SelectedItem is ModelItem m ? m.Model : Zuiki.DefaultModel;
+
+    private void SelectModel(string model)
+    {
+        for (int i = 0; i < _cboModel.Items.Count; i++)
+            if (_cboModel.Items[i] is ModelItem m
+                && string.Equals(m.Model, model, StringComparison.OrdinalIgnoreCase))
+            {
+                _cboModel.SelectedIndex = i;
+                return;
+            }
+
+        // Guard the recursion: if the default is missing too, take whatever is first.
+        if (!string.Equals(model, Zuiki.DefaultModel, StringComparison.OrdinalIgnoreCase))
+            SelectModel(Zuiki.DefaultModel);
+        else if (_cboModel.Items.Count > 0)
+            _cboModel.SelectedIndex = 0;
+    }
+
     private void ConfigToUi()
     {
         SelectDevice(_cfg.AxisDeviceId);
         _cboAxis.SelectedItem = _cfg.AxisName;
         if (_cboAxis.SelectedIndex < 0) _cboAxis.SelectedIndex = 0;
 
+        SelectModel(_cfg.Model);
+
         _lblMin.Text = _cfg.AxisMin.ToString();
         _lblMax.Text = _cfg.AxisMax.ToString();
         _chkInvert.Checked = _cfg.Invert;
         _chkEbInAxis.Checked = _cfg.IncludeEmergencyInAxis;
         _numHyst.Value = (decimal)Math.Clamp(_cfg.Hysteresis, 0, 0.49);
-        _lblPath.Text = $"Model: {_cfg.Model}   ·   buttons and hat are edited in the file\n{_configPath}";
+        _lblPath.Text = $"Buttons and hat are edited in the file\n{_configPath}";
     }
 
     private void UiToConfig()
@@ -372,6 +430,7 @@ public sealed class MainForm : Form
         int id = SelectedDeviceId();
         if (id >= 0) _cfg.AxisDeviceId = id;
         _cfg.AxisName = SelectedAxis();
+        _cfg.Model = SelectedModel();
         _cfg.Invert = _chkInvert.Checked;
         _cfg.IncludeEmergencyInAxis = _chkEbInAxis.Checked;
         _cfg.Hysteresis = (double)_numHyst.Value;
@@ -529,6 +588,7 @@ public sealed class MainForm : Form
         // configuration halfway through would leave the window lying.
         _cboDevice.Enabled = on;
         _cboAxis.Enabled = on;
+        _cboModel.Enabled = on;
         _btnRefresh.Enabled = on;
         _btnCalibrate.Enabled = on;
         _chkInvert.Enabled = on;

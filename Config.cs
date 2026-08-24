@@ -44,7 +44,7 @@ public sealed class Config
     public List<ButtonBinding> Buttons { get; set; } = new();
 
     // --- Virtual device ---
-    public string Model { get; set; } = "ZKNS-001";
+    public string Model { get; set; } = Zuiki.DefaultModel;
 
     /// <summary>Overrides the model's vendor id, e.g. "0x0F0D".</summary>
     public string? Vid { get; set; }
@@ -100,8 +100,12 @@ public sealed class Config
     {
         var model = Zuiki.KnownModels.FirstOrDefault(
             m => string.Equals(m.Model, Model, StringComparison.OrdinalIgnoreCase));
+
+        // An unrecognised name falls back to the model the game actually accepts,
+        // not to whichever happens to be first in the table.
         if (model.Model is null)
-            model = Zuiki.KnownModels[0];
+            model = Zuiki.KnownModels.First(
+                m => string.Equals(m.Model, Zuiki.DefaultModel, StringComparison.OrdinalIgnoreCase));
 
         ushort vid = ParseHex(Vid) ?? model.Vid;
         ushort pid = ParseHex(Pid) ?? model.Pid;

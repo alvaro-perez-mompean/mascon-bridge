@@ -105,6 +105,8 @@ panel:
   emergency brake to stay applied while you do something else.
 - The **current notch** in large type, live. This works with the bridge stopped, as a
   preview, so calibration and inversion can be checked without creating any device.
+- **Model**, which mascon to impersonate. Leave it alone unless the game ignores the
+  bridge; see below.
 - **Start bridge**, then launch Steam and the game, in that order — the game enumerates
   controllers at startup.
 
@@ -148,31 +150,33 @@ clone needs nothing extra.
 
 ## Choosing the model
 
-`config.json` → `"Model"` picks which device to emulate:
+The **Model** dropdown in the control panel picks which mascon to impersonate. It is
+also `"Model"` in `config.json`.
 
-| Model | VID | PID |
-|---|---|---|
-| ZKNS-001 | 0x0F0D | 0x00C1 |
-| ZKNS-001b | 0x33DD | 0x0001 |
-| ZKNS-002 | 0x33DD | 0x0002 |
-| ZKNS-011 | 0x33DD | 0x0003 |
-| ZKNS-012 | 0x33DD | 0x0004 |
-| ZKNS-013 | 0x33DD | 0x0005 |
+| Model | VID | PID | |
+|---|---|---|---|
+| ZKNS-001 | 0x0F0D | 0x00C1 | Nintendo's vendor id |
+| ZKNS-001b | 0x33DD | 0x0001 | |
+| **ZKNS-002** | **0x33DD** | **0x0002** | **default** |
+| ZKNS-011 | 0x33DD | 0x0003 | |
+| ZKNS-012 | 0x33DD | 0x0004 | |
+| ZKNS-013 | 0x33DD | 0x0005 | |
 
-**Start with `ZKNS-002`.** Steam recognising the device is not the same as the game
-accepting it: `ZKNS-001` shows up perfectly in *Steam → Settings → Controller* and the
-game still ignores it. Its `0x0F0D` is Nintendo's vendor id, inherited from the Switch
-pad; the `0x33DD` ids belong to ZUIKI. If the game does not react, work through the
-`33DD` models before suspecting anything else — it is a one line change.
+**`ZKNS-002` is the default and should just work.** Steam recognising the device is not
+the same as the game accepting it: `ZKNS-001` shows up perfectly in *Steam → Settings →
+Controller* and the game still ignores it. Its `0x0F0D` is Nintendo's vendor id,
+inherited from the Switch pad; the `0x33DD` ids belong to ZUIKI.
 
-`try-model.ps1` automates that loop:
+If the game does not react, work through the other `33DD` models before suspecting
+anything else. Close and reopen the game on each round — it enumerates controllers at
+startup, so switching model while it runs proves nothing.
+
+`try-model.ps1` automates that loop from a console:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
-.\try-model.ps1 ZKNS-002
+.\try-model.ps1 ZKNS-011
 ```
-
-Close and reopen the game on each round.
 
 ## Troubleshooting
 

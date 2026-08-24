@@ -41,6 +41,13 @@ public static class Zuiki
         ("P1", 0x9F), ("P2", 0xB7), ("P3", 0xCE), ("P4", 0xE6), ("P5", 0xFF),
     };
 
+    /// <summary>
+    /// The model to emulate unless told otherwise. Steam recognises all six, but the
+    /// game only reacts to the ones on ZUIKI's own 33DD vendor id. ZKNS-001 carries
+    /// Nintendo's 0F0D, inherited from the Switch pad, and the game ignores it.
+    /// </summary>
+    public const string DefaultModel = "ZKNS-002";
+
     /// <summary>Models the game recognises. They all share the same descriptor.</summary>
     public static readonly (string Model, ushort Vid, ushort Pid, string Product)[] KnownModels =
     {
