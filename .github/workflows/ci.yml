@@ -11,6 +11,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# This workflow only reads the repository. Without this block the token would
+# carry whatever the repository default grants, which on a public repo can be
+# write access for pushes.
+permissions:
+  contents: read
+
 env:
   # HIDMaestro is a third party binary of about 40 MB, so it is not committed.
   # Pinned rather than tracking "latest": HIDMaestro has broken its API between
