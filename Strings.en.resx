@@ -66,8 +66,17 @@
   <data name="CheckInvertAxis" xml:space="preserve">
     <value>Invert axis</value>
   </data>
-  <data name="CheckEbOnHandle" xml:space="preserve">
-    <value>EB on the handle (15 notches instead of 14)</value>
+  <data name="CheckPowerRelease" xml:space="preserve">
+    <value>Power, N to P1</value>
+  </data>
+  <data name="CheckEmergencyRelease" xml:space="preserve">
+    <value>Emergency, B8 to EB</value>
+  </data>
+  <data name="ButtonLearnRelease" xml:space="preserve">
+    <value>Choose button</value>
+  </data>
+  <data name="ButtonLearnCancel" xml:space="preserve">
+    <value>Cancel</value>
   </data>
   <data name="HintAxis" xml:space="preserve">
     <value>Move the handle and watch which of the six responds.</value>
@@ -78,6 +87,21 @@ Only change this if the game ignores the mascon.</value>
   </data>
   <data name="HintButtonsInFile" xml:space="preserve">
     <value>Buttons and hat are edited in the file:</value>
+  </data>
+  <data name="GroupCatches" xml:space="preserve">
+    <value>Handle catches</value>
+  </data>
+  <data name="HintCatches" xml:space="preserve">
+    <value>Tick an end to make the handle need a button before it may cross into it, as the real mascon does. Only crossing is guarded: once across you can let go, and coming back sets the catch again.</value>
+  </data>
+  <data name="HintReleaseNotSet" xml:space="preserve">
+    <value>no button chosen</value>
+  </data>
+  <data name="HintReleaseBinding" xml:space="preserve">
+    <value>device {0}, button {1}</value>
+  </data>
+  <data name="HintReleasePress" xml:space="preserve">
+    <value>Press the button you want to use.</value>
   </data>
   <data name="HintLanguageRestart" xml:space="preserve">
     <value>The window reopens when you change this.</value>
@@ -111,6 +135,12 @@ Only change this if the game ignores the mascon.</value>
   </data>
   <data name="NotchPreview" xml:space="preserve">
     <value>axis {0}   ·   {1:F1}% of travel   ·   preview, the bridge is stopped</value>
+  </data>
+  <data name="NotchHeldAtNeutral" xml:space="preserve">
+    <value>held at N   ·   press the button to enter power</value>
+  </data>
+  <data name="NotchHeldAtFullService" xml:space="preserve">
+    <value>held at B8   ·   press the button to reach emergency</value>
   </data>
   <data name="NotchAxisMissing" xml:space="preserve">
     <value>the selected axis does not exist on this device</value>

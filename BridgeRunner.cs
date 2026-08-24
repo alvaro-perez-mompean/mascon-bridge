@@ -8,7 +8,66 @@ public readonly record struct BridgeState(
     string NotchName,
     byte NotchValue,
     ushort Buttons,
-    byte Hat);
+    byte Hat,
+    bool PowerHeld,
+    bool EmergencyHeld);
+
+/// <summary>
+/// A catch on the handle: a boundary notch that cannot be crossed unless a button
+/// is held. Both ends of the real lever have one, for opposite reasons — a thumb
+/// release guards N to P1 so power is never taken by accident, and a cam guards
+/// B8 to EB so the emergency brake is never applied by accident.
+///
+/// Crossing is what is guarded, not staying across: once past, the button can be
+/// let go, because on the real handle the lever is simply there. Coming back over
+/// the boundary sets the catch again.
+/// </summary>
+public struct NotchCatch
+{
+    private readonly int _boundary;
+    private readonly bool _guardsAbove;
+    private bool _across;
+
+    private NotchCatch(int boundary, bool guardsAbove)
+    {
+        _boundary = boundary;
+        _guardsAbove = guardsAbove;
+        _across = false;
+        Held = false;
+    }
+
+    /// <summary>Guards N to P1: the thumb release button on the real handle.</summary>
+    public static NotchCatch Power() => new(Zuiki.NeutralIndex, true);
+
+    /// <summary>Guards B8 to EB: the cam the real handle has to be pushed past.</summary>
+    public static NotchCatch Emergency() => new(Zuiki.FullServiceIndex, false);
+
+    /// <summary>True while the handle is asking for a notch it is not allowed to have.</summary>
+    public bool Held { get; private set; }
+
+    /// <summary>Returns the notch the handle is allowed to reach.</summary>
+    public int Apply(int notchIndex, bool releasePressed)
+    {
+        bool guarded = _guardsAbove ? notchIndex > _boundary : notchIndex < _boundary;
+
+        if (!guarded)
+        {
+            _across = false;
+            Held = false;
+            return notchIndex;
+        }
+
+        if (!_across && !releasePressed)
+        {
+            Held = true;
+            return _boundary;
+        }
+
+        _across = true;
+        Held = false;
+        return notchIndex;
+    }
+}
 
 /// <summary>
 /// The bridge loop, shared by the console modes and the control window so the two
@@ -63,13 +122,19 @@ public sealed class BridgeRunner : IDisposable
 
     private void Loop()
     {
-        int firstNotch = _cfg.IncludeEmergencyInAxis ? 0 : 1;
-        int zones = Zuiki.Notches.Length - firstNotch;
+        int zones = Zuiki.Notches.Length;
         int cur = 0;
 
         var extraDevices = _cfg.Buttons.Select(b => b.DeviceId)
             .Concat(_cfg.HatDeviceId >= 0 ? new[] { _cfg.HatDeviceId } : Array.Empty<int>())
+            .Concat(_cfg.PowerReleaseDeviceId >= 0
+                ? new[] { _cfg.PowerReleaseDeviceId } : Array.Empty<int>())
+            .Concat(_cfg.EmergencyReleaseDeviceId >= 0
+                ? new[] { _cfg.EmergencyReleaseDeviceId } : Array.Empty<int>())
             .Distinct().ToList();
+
+        var powerCatch = NotchCatch.Power();
+        var emergencyCatch = NotchCatch.Emergency();
 
         while (!_stop)
         {
@@ -85,7 +150,7 @@ public sealed class BridgeRunner : IDisposable
                 }
             }
 
-            int notchIndex = firstNotch + cur;
+            int notchIndex = cur;
 
             ushort buttons = 0;
             byte hat = Zuiki.HatCentered;
@@ -110,13 +175,32 @@ public sealed class BridgeRunner : IDisposable
             if (_cfg.HatDeviceId >= 0 && states.TryGetValue(_cfg.HatDeviceId, out var jh))
                 hat = Joystick.PovToHat(jh.dwPOV);
 
+            // The catches work on the output only: cur keeps following the real
+            // handle, so releasing one lands on the notch the lever is already at
+            // instead of sweeping up to it.
+            //
+            // The emergency catch goes before the EB button override on purpose. A
+            // button bound to EB is a deliberate act on a separate control, so it
+            // must not be clamped back to B8 by a catch that guards the lever.
+            if (_cfg.EmergencyReleaseDeviceId >= 0)
+                notchIndex = emergencyCatch.Apply(notchIndex,
+                    Pressed(_cfg.EmergencyReleaseDeviceId, _cfg.EmergencyReleaseButton));
+
             if (emergency) notchIndex = 0;
+
+            if (_cfg.PowerReleaseDeviceId >= 0)
+                notchIndex = powerCatch.Apply(notchIndex,
+                    Pressed(_cfg.PowerReleaseDeviceId, _cfg.PowerReleaseButton));
 
             var (name, value) = Zuiki.Notches[notchIndex];
             _dev!.Submit(Zuiki.BuildReport(value, buttons, hat));
 
             lock (_lock)
-                _state = new BridgeState(rawAxis, p, notchIndex, name, value, buttons, hat);
+                _state = new BridgeState(rawAxis, p, notchIndex, name, value,
+                    buttons, hat, powerCatch.Held, emergencyCatch.Held);
+
+            bool Pressed(int device, int button) =>
+                states.TryGetValue(device, out var js) && Joystick.IsButtonDown(js, button);
 
             Thread.Sleep(Math.Max(1, _cfg.PollMs));
         }

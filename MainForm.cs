@@ -44,14 +44,14 @@ public sealed class MainForm : Form
         Text = Strings.ButtonCalibrate,
     };
     private readonly CheckBox _chkInvert = new() { Text = Strings.CheckInvertAxis, AutoSize = true };
-    private readonly CheckBox _chkEbInAxis = new()
-    {
-        Text = Strings.CheckEbOnHandle, AutoSize = true,
-    };
     private readonly NumericUpDown _numHyst = new()
     {
         DecimalPlaces = 2, Increment = 0.05M, Minimum = 0M, Maximum = 0.49M, Width = 70,
     };
+
+    private readonly CatchRow _catchPower = new(Strings.CheckPowerRelease);
+    private readonly CatchRow _catchEmergency = new(Strings.CheckEmergencyRelease);
+
 
     private readonly ComboBox _cboModel = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly ComboBox _cboLanguage = new() { DropDownStyle = ComboBoxStyle.DropDownList };
@@ -64,6 +64,7 @@ public sealed class MainForm : Form
         Text = Strings.ButtonSaveConfiguration,
     };
     private readonly StatusPill _status = new();
+
     private readonly Label _lblPath = new() { ForeColor = Theme.Muted };
     private readonly ToolTip _tips = new();
 
@@ -84,6 +85,8 @@ public sealed class MainForm : Form
 
     private bool _suppressLanguageEvent;
     private bool _calibrating;
+    private NotchCatch _previewPower = NotchCatch.Power();
+    private NotchCatch _previewEmergency = NotchCatch.Emergency();
     private int _calMin = int.MaxValue;
     private int _calMax = int.MinValue;
     private int _previewZone;
@@ -188,10 +191,12 @@ public sealed class MainForm : Form
         };
         right.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         // The slack goes to the last card, so both columns end on the same line.
         right.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         right.Controls.Add(new Card(Strings.GroupCalibration, BuildCalibration()), 0, 0);
-        right.Controls.Add(new Card(Strings.GroupVirtualDevice, BuildVirtualDevice()), 0, 1);
+        right.Controls.Add(new Card(Strings.GroupCatches, BuildCatches()), 0, 1);
+        right.Controls.Add(new Card(Strings.GroupVirtualDevice, BuildVirtualDevice()), 0, 2);
 
         var body = new TableLayoutPanel
         {
@@ -283,16 +288,22 @@ public sealed class MainForm : Form
         grid.Controls.Add(hint, 2, 1);
         grid.SetColumnSpan(hint, 2);
 
+        // One row per axis plus an empty one at the end. Without that tail row the
+        // panel hands its leftover height to the last axis, which leaves a gap above
+        // V as soon as the other column grows taller than this one.
         var rows = new TableLayoutPanel
         {
             ColumnCount = 1,
-            RowCount = Joystick.AxisNames.Length,
+            RowCount = Joystick.AxisNames.Length + 1,
             Dock = DockStyle.Fill,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             Margin = new Padding(0, 10, 0, 0),
         };
         rows.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        for (int i = 0; i < Joystick.AxisNames.Length; i++)
+            rows.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        rows.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         for (int i = 0; i < Joystick.AxisNames.Length; i++)
         {
@@ -333,11 +344,6 @@ public sealed class MainForm : Form
         grid.Controls.Add(_chkInvert, 0, 1);
         grid.SetColumnSpan(_chkInvert, 5);
 
-        _chkEbInAxis.CheckedChanged += OnEbOnHandleChanged;
-        _chkEbInAxis.Margin = new Padding(3, 8, 3, 3);
-        grid.Controls.Add(_chkEbInAxis, 0, 2);
-        grid.SetColumnSpan(_chkEbInAxis, 5);
-
         _numHyst.ValueChanged += (_, _) => _cfg.Hysteresis = (double)_numHyst.Value;
         _numHyst.Anchor = AnchorStyles.Left;
         _numHyst.Margin = new Padding(3, 10, 3, 3);
@@ -345,8 +351,29 @@ public sealed class MainForm : Form
 
         var capHyst = Cap(Strings.LabelHysteresis);
         capHyst.Margin = new Padding(3, 14, 8, 6);
-        grid.Controls.Add(capHyst, 0, 3);
-        grid.Controls.Add(_numHyst, 1, 3);
+        grid.Controls.Add(capHyst, 0, 2);
+        grid.Controls.Add(_numHyst, 1, 2);
+        return grid;
+    }
+
+    /// <summary>
+    /// Both catches together, under one explanation. They are the same mechanism at
+    /// opposite ends of the handle, so splitting them would mean saying it twice.
+    /// </summary>
+    private Control BuildCatches()
+    {
+        var grid = Grid(1);
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+        _catchPower.Changed += OnCatchChanged;
+        _catchEmergency.Changed += OnCatchChanged;
+
+        grid.Controls.Add(_catchPower, 0, 0);
+        grid.Controls.Add(_catchEmergency, 0, 1);
+
+        var hint = Hint(Strings.HintCatches);
+        hint.Margin = new Padding(3, 4, 3, 3);
+        grid.Controls.Add(hint, 0, 2);
         return grid;
     }
 
@@ -517,11 +544,17 @@ public sealed class MainForm : Form
         foreach (var row in _axisRow) row.Active = row.Axis == axis;
     }
 
-    private void OnEbOnHandleChanged(object? sender, EventArgs e)
+    private void OnCatchChanged(object? sender, EventArgs e)
     {
-        _cfg.IncludeEmergencyInAxis = _chkEbInAxis.Checked;
-        _notch.EbOnHandle = _chkEbInAxis.Checked;
-        _previewZone = 0;
+        _cfg.PowerReleaseDeviceId = _catchPower.DeviceId;
+        _cfg.PowerReleaseButton = _catchPower.Button;
+        _cfg.EmergencyReleaseDeviceId = _catchEmergency.DeviceId;
+        _cfg.EmergencyReleaseButton = _catchEmergency.Button;
+
+        _previewPower = NotchCatch.Power();
+        _previewEmergency = NotchCatch.Emergency();
+        _notch.PowerHeld = false;
+        _notch.EmergencyHeld = false;
     }
 
     private void ConfigToUi()
@@ -546,9 +579,11 @@ public sealed class MainForm : Form
         _lblMin.Text = _cfg.AxisMin.ToString();
         _lblMax.Text = _cfg.AxisMax.ToString();
         _chkInvert.Checked = _cfg.Invert;
-        _chkEbInAxis.Checked = _cfg.IncludeEmergencyInAxis;
-        _notch.EbOnHandle = _cfg.IncludeEmergencyInAxis;
         _numHyst.Value = (decimal)Math.Clamp(_cfg.Hysteresis, 0, 0.49);
+
+        _catchPower.SetBinding(_cfg.PowerReleaseDeviceId, _cfg.PowerReleaseButton);
+        _catchEmergency.SetBinding(_cfg.EmergencyReleaseDeviceId, _cfg.EmergencyReleaseButton);
+
         _lblPath.Text = _configPath;
         _tips.SetToolTip(_lblPath, _configPath);
     }
@@ -560,13 +595,15 @@ public sealed class MainForm : Form
         _cfg.AxisName = SelectedAxis();
         _cfg.Model = SelectedModel();
         _cfg.Invert = _chkInvert.Checked;
-        _cfg.IncludeEmergencyInAxis = _chkEbInAxis.Checked;
         _cfg.Hysteresis = (double)_numHyst.Value;
     }
 
     // -------------------------------------------------------------------------
     private void OnTick(object? sender, EventArgs e)
     {
+        _catchPower.CaptureWhileLearning();
+        _catchEmergency.CaptureWhileLearning();
+
         int devId = SelectedDeviceId();
         if (devId < 0 || !Joystick.TryRead(devId, out var j))
         {
@@ -598,7 +635,10 @@ public sealed class MainForm : Form
         {
             var s = _runner.State;
             _notch.Index = s.NotchIndex;
-            _notch.Detail = string.Format(Strings.NotchSending, s.RawAxis, s.Fraction * 100);
+            _notch.PowerHeld = s.PowerHeld;
+            _notch.EmergencyHeld = s.EmergencyHeld;
+            _notch.Detail = HeldDetail(s.PowerHeld, s.EmergencyHeld)
+                ?? string.Format(Strings.NotchSending, s.RawAxis, s.Fraction * 100);
             return;
         }
 
@@ -610,15 +650,37 @@ public sealed class MainForm : Form
         }
 
         UiToConfig();
-        int firstNotch = _cfg.IncludeEmergencyInAxis ? 0 : 1;
-        int zones = Zuiki.Notches.Length - firstNotch;
 
         double p = BridgeRunner.AxisFraction(raw, _cfg);
-        _previewZone = BridgeRunner.ZoneWithHysteresis(p, zones, _previewZone, _cfg.Hysteresis);
+        _previewZone = BridgeRunner.ZoneWithHysteresis(
+            p, Zuiki.Notches.Length, _previewZone, _cfg.Hysteresis);
 
-        _notch.Index = firstNotch + _previewZone;
-        _notch.Detail = string.Format(Strings.NotchPreview, raw, p * 100);
+        // The preview applies the catches too, so a binding can be tried out before
+        // the bridge is started, which is when one is usually being set up.
+        int index = _previewZone;
+        if (_cfg.EmergencyReleaseDeviceId >= 0 && !_catchEmergency.Learning)
+            index = _previewEmergency.Apply(index,
+                Pressed(_cfg.EmergencyReleaseDeviceId, _cfg.EmergencyReleaseButton));
+
+        if (_cfg.PowerReleaseDeviceId >= 0 && !_catchPower.Learning)
+            index = _previewPower.Apply(index,
+                Pressed(_cfg.PowerReleaseDeviceId, _cfg.PowerReleaseButton));
+
+        _notch.Index = index;
+        _notch.PowerHeld = _previewPower.Held;
+        _notch.EmergencyHeld = _previewEmergency.Held;
+        _notch.Detail = HeldDetail(_previewPower.Held, _previewEmergency.Held)
+            ?? string.Format(Strings.NotchPreview, raw, p * 100);
+
+        static bool Pressed(int device, int button) =>
+            Joystick.TryRead(device, out var j) && Joystick.IsButtonDown(j, button);
     }
+
+    /// <summary>Null when nothing is being withheld, so the caller can fall through.</summary>
+    private static string? HeldDetail(bool power, bool emergency) =>
+        power ? Strings.NotchHeldAtNeutral
+        : emergency ? Strings.NotchHeldAtFullService
+        : null;
 
     // -------------------------------------------------------------------------
     private void OnCalibrateClick(object? sender, EventArgs e)
@@ -715,8 +777,9 @@ public sealed class MainForm : Form
         _btnRefresh.Enabled = on;
         _btnCalibrate.Enabled = on;
         _chkInvert.Enabled = on;
-        _chkEbInAxis.Enabled = on;
         _numHyst.Enabled = on;
+        _catchPower.Interactive = on;
+        _catchEmergency.Interactive = on;
 
         // Left readable rather than greyed: the readings stay live while the bridge
         // runs, it is only picking a different axis that has to wait.
@@ -790,6 +853,10 @@ public sealed class MainForm : Form
             .DefaultIfEmpty(LogicalToDeviceUnits(160))
             .Max();
         _cboModel.Width = widestItem + SystemInformation.VerticalScrollBarWidth + LogicalToDeviceUnits(24);
+
+        int caption = Math.Max(_catchPower.CaptionWidth, _catchEmergency.CaptionWidth);
+        _catchPower.AlignCaption(caption);
+        _catchEmergency.AlignCaption(caption);
 
         // Size the window to what the layout engine actually measured, with this
         // display's font and scaling already applied.

@@ -146,26 +146,14 @@ public class BridgeRunnerTests
     }
 
     [Fact]
-    public void Fourteen_zones_skip_the_emergency_notch()
+    public void The_travel_covers_the_whole_scale_from_emergency_to_full_power()
     {
-        // With IncludeEmergencyInAxis off the loop adds 1 to the zone index, so the
-        // handle covers B8..P5 and never reaches EB.
-        const int firstNotch = 1;
-        int zones = Zuiki.Notches.Length - firstNotch;
-
-        Assert.Equal(14, zones);
-        Assert.Equal("B8", Zuiki.Notches[firstNotch + BridgeRunner.ZoneWithHysteresis(0.0, zones, 0, 0)].Name);
-        Assert.Equal("P5", Zuiki.Notches[firstNotch + BridgeRunner.ZoneWithHysteresis(1.0, zones, 0, 0)].Name);
-    }
-
-    [Fact]
-    public void Fifteen_zones_put_the_emergency_notch_at_the_end_of_travel()
-    {
-        const int firstNotch = 0;
-        int zones = Zuiki.Notches.Length - firstNotch;
+        // The handle always carries all fifteen positions. Whether EB can actually be
+        // reached is the emergency catch's business, not the zone maths.
+        int zones = Zuiki.Notches.Length;
 
         Assert.Equal(15, zones);
-        Assert.Equal("EB", Zuiki.Notches[firstNotch + BridgeRunner.ZoneWithHysteresis(0.0, zones, 5, 0)].Name);
-        Assert.Equal("P5", Zuiki.Notches[firstNotch + BridgeRunner.ZoneWithHysteresis(1.0, zones, 5, 0)].Name);
+        Assert.Equal("EB", Zuiki.Notches[BridgeRunner.ZoneWithHysteresis(0.0, zones, 5, 0)].Name);
+        Assert.Equal("P5", Zuiki.Notches[BridgeRunner.ZoneWithHysteresis(1.0, zones, 5, 0)].Name);
     }
 }

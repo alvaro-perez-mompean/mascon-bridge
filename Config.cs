@@ -27,14 +27,26 @@ public sealed class Config
     public int AxisMax { get; set; } = 65535;
     public bool Invert { get; set; } = false;
 
-    /// <summary>
-    /// When true the lowest handle position is EB (15 zones). When false the handle
-    /// covers B8 to P5 (14 zones) and EB is only reachable from a button.
-    /// </summary>
-    public bool IncludeEmergencyInAxis { get; set; } = false;
-
     /// <summary>Hysteresis as a fraction of one zone's width (0 disables it).</summary>
     public double Hysteresis { get; set; } = 0.25;
+
+    // --- Catches ---
+    // Both ends of the real handle are protected, by different means and against
+    // different mistakes: a thumb release button guards N to P1 so power cannot be
+    // taken by accident, and a cam guards B8 to EB so emergency cannot. An analogue
+    // lever cannot reproduce the cam's extra force, so both become buttons here.
+
+    /// <summary>Joystick carrying the button that unlocks power, -1 to disable.</summary>
+    public int PowerReleaseDeviceId { get; set; } = -1;
+
+    /// <summary>Physical button number, starting at 1.</summary>
+    public int PowerReleaseButton { get; set; } = 1;
+
+    /// <summary>Joystick carrying the button that unlocks EB, -1 to disable.</summary>
+    public int EmergencyReleaseDeviceId { get; set; } = -1;
+
+    /// <summary>Physical button number, starting at 1.</summary>
+    public int EmergencyReleaseButton { get; set; } = 1;
 
     // --- Hat ---
     /// <summary>-1 disables the hat.</summary>
@@ -83,14 +95,12 @@ public sealed class Config
 
     /// <summary>
     /// Written on first run. Deliberately neutral: the control panel picks the first
-    /// device present, and the axis has to be identified by hand anyway. EB sits on
-    /// the handle by default, which is how the real mascon works.
+    /// device present, and the axis has to be identified by hand anyway.
     /// </summary>
     public static Config Default() => new()
     {
         AxisDeviceId = 0,
         AxisName = "Z",
-        IncludeEmergencyInAxis = true,
         Buttons =
         {
             new ButtonBinding { DeviceId = 0, Button = 1, Mascon = "A" },
