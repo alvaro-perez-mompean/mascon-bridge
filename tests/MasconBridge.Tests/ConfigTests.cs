@@ -158,6 +158,7 @@ public class ConfigTests : IDisposable
             Model = "ZKNS-002",
             ProductString = "Custom",
             PollMs = 4,
+            Devices = { [2] = "044F:B687", [3] = "044F:B10A" },
             Buttons =
             {
                 new ButtonBinding { DeviceId = 3, Button = 7, Mascon = "ZL" },
@@ -182,6 +183,11 @@ public class ConfigTests : IDisposable
         Assert.Equal(original.Model, loaded.Model);
         Assert.Equal(original.ProductString, loaded.ProductString);
         Assert.Equal(original.PollMs, loaded.PollMs);
+
+        // The device memory is keyed by number, and JSON has no integer keys: worth
+        // one assertion, because getting it wrong throws only at load time.
+        Assert.Equal("044F:B687", loaded.Devices[2]);
+        Assert.Equal("044F:B10A", loaded.Devices[3]);
 
         Assert.Equal(2, loaded.Buttons.Count);
         Assert.Equal("ZL", loaded.Buttons[0].Mascon);

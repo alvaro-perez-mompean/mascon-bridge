@@ -151,6 +151,12 @@ Only change this if the game ignores the mascon.</value>
   <data name="StatusNoJoystick" xml:space="preserve">
     <value>No joystick detected</value>
   </data>
+  <data name="StatusDevicesMoved" xml:space="preserve">
+    <value>Joystick numbers changed, the settings followed</value>
+  </data>
+  <data name="StatusDeviceMissing" xml:space="preserve">
+    <value>A joystick in the settings is not connected</value>
+  </data>
   <data name="DeviceItem" xml:space="preserve">
     <value>{0} - {1} - {2} axes, {3} buttons</value>
   </data>
@@ -263,6 +269,12 @@ If this is a permissions problem, run the program as administrator.</value>
   </data>
   <data name="ConsoleStopped" xml:space="preserve">
     <value>Stopped.</value>
+  </data>
+  <data name="ConsoleDeviceMoved" xml:space="preserve">
+    <value>Joystick {0} is now {1} ({2}); the settings followed it.</value>
+  </data>
+  <data name="ConsoleDeviceMissing" xml:space="preserve">
+    <value>Joystick {0} ({1}) is not connected; its number was left alone.</value>
   </data>
   <data name="ConfigCreatedSample" xml:space="preserve">
     <value>No config found, wrote a sample one to {0}</value>

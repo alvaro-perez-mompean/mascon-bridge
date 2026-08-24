@@ -113,9 +113,18 @@ public sealed class MainForm : Form
         _configPath = Config.Resolve(explicitConfigPath);
         _cfg = Config.Load(_configPath);
 
+        // Before anything reads an axis: winmm renumbers joysticks whenever a USB
+        // device comes or goes, so put the remembered ones back where they are now.
+        var moved = _cfg.RelocateDevices(DeviceMap.Present());
+        if (moved.Moves.Count > 0)
+        {
+            try { _cfg.Save(_configPath); } catch (IOException) { /* said below anyway */ }
+        }
+
         BuildUi();
         LoadDevices();
         ConfigToUi();
+        ReportDeviceChanges(moved);
 
         _timer.Tick += OnTick;
         _timer.Start();
@@ -544,6 +553,20 @@ public sealed class MainForm : Form
     }
 
     // -------------------------------------------------------------------------
+    /// <summary>
+    /// A renumbering is not an error, but it is worth a word: the alternative is a
+    /// window that silently points somewhere else than it did yesterday. A device
+    /// that is simply gone takes precedence, since that one needs attention.
+    /// </summary>
+    private void ReportDeviceChanges(DeviceMap.Plan plan)
+    {
+        if (plan.Missing.Count > 0)
+            _status.Show(Strings.StatusDeviceMissing, StatusPill.Tone.Warn);
+        else if (plan.Moves.Count > 0)
+            _status.Show(Strings.StatusDevicesMoved, StatusPill.Tone.Live);
+    }
+
+    // -------------------------------------------------------------------------
     private void LoadDevices()
     {
         int previous = SelectedDeviceId();
@@ -728,6 +751,9 @@ public sealed class MainForm : Form
         _cfg.Model = SelectedModel();
         _cfg.Invert = _chkInvert.Checked;
         _cfg.Hysteresis = (double)_numHyst.Value;
+
+        // What each number points at today, so the next run can find them again.
+        _cfg.RememberDevices(DeviceMap.Present());
     }
 
     // -------------------------------------------------------------------------

@@ -163,6 +163,7 @@ static string Bar(int v, int min, int max)
 static int CmdCalibrate(string configPath)
 {
     var cfg = Config.Load(configPath);
+    FollowDevices(cfg, configPath);
     Console.WriteLine(string.Format(Strings.ConsoleCalibrating, cfg.AxisDeviceId, cfg.AxisName));
     Console.WriteLine(Strings.ConsoleCalibrateHint);
     Console.WriteLine();
@@ -226,9 +227,28 @@ static int CmdTest(string configPath)
 }
 
 // -----------------------------------------------------------------------------
+// winmm renumbers joysticks whenever anything is plugged in or out. Follow the
+// remembered devices to their new numbers before reading a single axis, and say so,
+// because a silent renumber is exactly how the handle ends up reading the rudder.
+static void FollowDevices(Config cfg, string configPath)
+{
+    var plan = cfg.RelocateDevices(DeviceMap.Present());
+    if (!plan.Anything) return;
+
+    foreach (var m in plan.Moves)
+        Console.WriteLine(string.Format(Strings.ConsoleDeviceMoved, m.From, m.To, m.Identity));
+    foreach (var g in plan.Missing)
+        Console.WriteLine(string.Format(Strings.ConsoleDeviceMissing, g.Id, g.Identity));
+
+    if (plan.Moves.Count > 0) cfg.Save(configPath);
+    Console.WriteLine();
+}
+
+// -----------------------------------------------------------------------------
 static int CmdRun(string configPath)
 {
     var cfg = Config.Load(configPath);
+    FollowDevices(cfg, configPath);
     var (vid, pid, product) = cfg.ResolveDevice();
 
 
