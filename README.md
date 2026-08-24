@@ -260,3 +260,14 @@ MIT。[LICENSE](LICENSE) を参照してください。
 - `cracrayol/ConToJREts` — ノッチ値の表とボタン割り当て:
   <https://github.com/cracrayol/ConToJREts>
 - HIDMaestro: <https://github.com/hifihedgehog/HIDMaestro>
+
+## 商標と免責
+
+本ソフトは個人が制作した非公式のツールです。株式会社瑞起（ZUIKI）、東日本旅客鉄道株式会社、
+任天堂株式会社とは一切関係がなく、これらの企業から承認、提供、支援を受けたものでもありません。
+
+ZUIKI、One Handle MasCon、JR EAST Train Simulator、Nintendo Switch は、それぞれの権利者の
+商標です。本ソフトでは、対応する機器やソフトを指し示す目的でのみ言及しています。
+
+仮想デバイスが名乗るベンダー ID とプロダクト ID には実機と同じ値を使用しています。ゲームが
+対応機器として認識するために必要だからで、それ以外の目的はありません。

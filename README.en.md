@@ -310,3 +310,17 @@ licence; it is downloaded rather than redistributed here.
 - `cracrayol/ConToJREts` — notch value table and button map:
   <https://github.com/cracrayol/ConToJREts>
 - HIDMaestro: <https://github.com/hifihedgehog/HIDMaestro>
+
+## Trademarks and disclaimer
+
+This is an unofficial tool written by an individual. It is not affiliated with,
+endorsed by, sponsored by or supported by ZUIKI Inc., East Japan Railway Company or
+Nintendo Co., Ltd.
+
+ZUIKI, One Handle MasCon, JR EAST Train Simulator and Nintendo Switch are trademarks
+of their respective owners, referred to here only to identify the hardware and
+software this tool works with.
+
+The virtual device reports the same vendor and product ids as the real mascon. That
+is what makes the game recognise it as a supported controller, and it is the only
+reason those values are used.

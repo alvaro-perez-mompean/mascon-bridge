@@ -18,9 +18,9 @@ public sealed class VirtualMascon : IDisposable
         _ctx.InstallDriver();
 
         var profile = new HMProfileBuilder()
-            .Id("zuiki-one-handle-mascon")
-            .Name("ZUIKI One Handle MasCon")
-            .Vendor("ZUIKI")
+            .Id("mascon-bridge")
+            .Name("mascon-bridge")
+            .Vendor("mascon-bridge")
             .Vid(vid)
             .Pid(pid)
             .ProductString(product)
