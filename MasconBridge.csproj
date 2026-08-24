@@ -16,7 +16,9 @@
     <Version>0.0.1</Version>
     <Product>Mascon Bridge</Product>
     <Description>Maps an analogue axis on any joystick or lever to a virtual ZUIKI One Handle MasCon.</Description>
-    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <!-- WFO1000 wants every property of a control to say how a designer should
+         serialise it. There is no designer here: the window is written by hand. -->
+    <NoWarn>$(NoWarn);CA1416;WFO1000</NoWarn>
     <!-- Requests elevation: HIDMaestro needs admin to install and sign the driver -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!-- Only these two ship. Without it the build drags in a satellite folder for

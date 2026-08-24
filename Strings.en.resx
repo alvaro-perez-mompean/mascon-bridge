@@ -77,8 +77,7 @@
 Only change this if the game ignores the mascon.</value>
   </data>
   <data name="HintButtonsInFile" xml:space="preserve">
-    <value>Buttons and hat are edited in the file
-{0}</value>
+    <value>Buttons and hat are edited in the file:</value>
   </data>
   <data name="HintLanguageRestart" xml:space="preserve">
     <value>The window reopens when you change this.</value>

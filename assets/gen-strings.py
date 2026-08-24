@@ -46,8 +46,8 @@ S = {
         "{0} が既定のコントローラーです。\nゲームがマスコンを認識しない場合のみ変更してください。",
     ),
     "HintButtonsInFile": (
-        "Buttons and hat are edited in the file\n{0}",
-        "ボタンとハットはファイルで編集します\n{0}",
+        "Buttons and hat are edited in the file:",
+        "ボタンとハットはファイルで編集します:",
     ),
     "HintLanguageRestart": (
         "The window reopens when you change this.",

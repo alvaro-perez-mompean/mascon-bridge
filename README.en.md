@@ -253,6 +253,9 @@ the driver with competitive titles that ship kernel level anti-cheat.
 | `VirtualMascon.cs` | HIDMaestro wrapper |
 | `BridgeRunner.cs` | The bridge loop, zone splitting and hysteresis, shared by console and window |
 | `MainForm.cs` | The control panel |
+| `Theme.cs` | The palette, the type scale and the drawing helpers the window shares |
+| `NotchDisplay.cs` | The notch scale: EB, B8 to B1, N, P1 to P5, lit one at a time |
+| `Card.cs` / `AxisRow.cs` / `FlatButton.cs` / `StatusPill.cs` | The hand painted controls the panel is built from |
 | `Config.cs` / `config.json` | Configuration |
 | `Program.cs` | Entry point and console modes |
 | `zuiki-zkns001.json` | The HIDMaestro profile as JSON, if you prefer loading it from disk |

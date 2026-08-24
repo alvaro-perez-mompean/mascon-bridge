@@ -7,7 +7,9 @@ namespace MasconBridge;
 /// start or stop the bridge.
 ///
 /// Layout is built with TableLayoutPanel and AutoSize on purpose. With absolute
-/// coordinates the text overlaps as soon as Windows scales the display.
+/// coordinates the text overlaps as soon as Windows scales the display. Everything
+/// hand painted sizes itself from its own font or through LogicalToDeviceUnits, for
+/// the same reason.
 /// </summary>
 public sealed class MainForm : Form
 {
@@ -28,14 +30,19 @@ public sealed class MainForm : Form
 
     private readonly ComboBox _cboDevice = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly ComboBox _cboAxis = new() { DropDownStyle = ComboBoxStyle.DropDownList };
-    private readonly Button _btnRefresh = new() { Text = Strings.ButtonRefresh, AutoSize = true };
+    private readonly FlatButton _btnRefresh = new(FlatButton.Look.Plain)
+    {
+        Text = Strings.ButtonRefresh,
+    };
 
-    private readonly Label[] _axisValue = new Label[Joystick.AxisNames.Length];
-    private readonly ProgressBar[] _axisBar = new ProgressBar[Joystick.AxisNames.Length];
+    private readonly AxisRow[] _axisRow = new AxisRow[Joystick.AxisNames.Length];
 
     private readonly Label _lblMin = new() { AutoSize = true };
     private readonly Label _lblMax = new() { AutoSize = true };
-    private readonly Button _btnCalibrate = new() { Text = Strings.ButtonCalibrate, AutoSize = true };
+    private readonly FlatButton _btnCalibrate = new(FlatButton.Look.Plain)
+    {
+        Text = Strings.ButtonCalibrate,
+    };
     private readonly CheckBox _chkInvert = new() { Text = Strings.CheckInvertAxis, AutoSize = true };
     private readonly CheckBox _chkEbInAxis = new()
     {
@@ -49,19 +56,16 @@ public sealed class MainForm : Form
     private readonly ComboBox _cboModel = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly ComboBox _cboLanguage = new() { DropDownStyle = ComboBoxStyle.DropDownList };
 
-    private readonly Label _lblNotch = new() { AutoSize = true };
-    private readonly Label _lblRaw = new() { AutoSize = true, ForeColor = SystemColors.GrayText };
-    private readonly ProgressBar _barNotch = new()
-    {
-        Minimum = 0, Maximum = 14, Height = 20, MinimumSize = new Size(300, 20),
-    };
+    private readonly NotchDisplay _notch = new(Strings.GroupCurrentNotch);
 
-    private readonly Button _btnStartStop = new() { AutoSize = true };
-    private Bitmap? _playGlyph;
-    private Bitmap? _stopGlyph;
-    private readonly Button _btnSave = new() { Text = Strings.ButtonSaveConfiguration, AutoSize = true };
-    private readonly Label _lblStatus = new() { AutoSize = true, Text = Strings.StatusStopped };
-    private readonly Label _lblPath = new() { AutoSize = true, ForeColor = SystemColors.GrayText };
+    private readonly FlatButton _btnStartStop = new(FlatButton.Look.Primary);
+    private readonly FlatButton _btnSave = new(FlatButton.Look.Plain)
+    {
+        Text = Strings.ButtonSaveConfiguration,
+    };
+    private readonly StatusPill _status = new();
+    private readonly Label _lblPath = new() { ForeColor = Theme.Muted };
+    private readonly ToolTip _tips = new();
 
     // Explanatory labels. Their width is capped in OnLoad so that a long line
     // wraps instead of stretching the whole window.
@@ -112,8 +116,19 @@ public sealed class MainForm : Form
 
     private static Label Cap(string text) => new()
     {
-        Text = text, AutoSize = true, Anchor = AnchorStyles.Left, Margin = new Padding(3, 6, 8, 6),
+        Text = text, AutoSize = true, Anchor = AnchorStyles.Left,
+        ForeColor = Theme.Ink, Margin = new Padding(3, 7, 8, 6),
     };
+
+    private Label Hint(string text)
+    {
+        var label = new Label
+        {
+            Text = text, AutoSize = true, Font = Theme.Ui(8.25F), ForeColor = Theme.Muted,
+        };
+        _hints.Add(label);
+        return label;
+    }
 
     private static TableLayoutPanel Grid(int columns) => new()
     {
@@ -121,18 +136,6 @@ public sealed class MainForm : Form
         Dock = DockStyle.Fill,
         AutoSize = true,
         AutoSizeMode = AutoSizeMode.GrowAndShrink,
-        Padding = new Padding(8, 6, 8, 8),
-    };
-
-    private static GroupBox Group(string text, Control inner) => new()
-    {
-        Text = text,
-        Dock = DockStyle.Fill,
-        AutoSize = true,
-        AutoSizeMode = AutoSizeMode.GrowAndShrink,
-        Padding = new Padding(6, 4, 6, 6),
-        Margin = new Padding(10, 6, 10, 6),
-        Controls = { inner },
     };
 
     private void BuildUi()
@@ -140,6 +143,9 @@ public sealed class MainForm : Form
         Text = "Mascon Bridge";
         StartPosition = FormStartPosition.CenterScreen;
         AutoScaleMode = AutoScaleMode.Font;
+        Font = Theme.Ui(9F);
+        BackColor = Theme.Page;
+        ForeColor = Theme.Ink;
 
         // Reuse the icon already embedded in the executable by ApplicationIcon,
         // rather than shipping a second copy as a resource.
@@ -152,176 +158,205 @@ public sealed class MainForm : Form
             Dock = DockStyle.Fill,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Padding = new Padding(4),
+            Padding = new Padding(4, 4, 4, 8),
         };
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         _root = root;
 
-        // --- Language, first thing in the window -------------------------------
+        root.Controls.Add(BuildHeader());
+        root.Controls.Add(_notch);
+        root.Controls.Add(BuildBody());
+        root.Controls.Add(BuildActions());
+
+        Controls.Add(root);
+    }
+
+    /// <summary>
+    /// Two columns, because one stack of five full width cards is most of a metre of
+    /// window on a scaled display. The axis readings need the width; calibration and
+    /// the model do not, so they share the other side.
+    /// </summary>
+    private Control BuildBody()
+    {
+        var right = new TableLayoutPanel
+        {
+            ColumnCount = 1,
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Margin = new Padding(0),
+        };
+        right.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        right.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        // The slack goes to the last card, so both columns end on the same line.
+        right.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        right.Controls.Add(new Card(Strings.GroupCalibration, BuildCalibration()), 0, 0);
+        right.Controls.Add(new Card(Strings.GroupVirtualDevice, BuildVirtualDevice()), 0, 1);
+
+        var body = new TableLayoutPanel
+        {
+            ColumnCount = 2,
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Margin = new Padding(LogicalToDeviceUnits(7), 0, LogicalToDeviceUnits(7), 0),
+        };
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        body.Controls.Add(new Card(Strings.GroupDeviceAndAxis, BuildDeviceAndAxis()), 0, 0);
+        body.Controls.Add(right, 1, 0);
+        return body;
+    }
+
+    /// <summary>
+    /// The language sits in the top corner, away from the settings that describe the
+    /// hardware: it is chrome, not part of the bridge.
+    /// </summary>
+    private Control BuildHeader()
+    {
         foreach (var (code, display) in Language.Supported)
             _cboLanguage.Items.Add(new LanguageItem(code, display));
-        _cboLanguage.Anchor = AnchorStyles.Left;
-        _cboLanguage.Margin = new Padding(3, 3, 12, 3);
+        _cboLanguage.Margin = new Padding(3, 0, 0, 0);
         _cboLanguage.SelectedIndexChanged += OnLanguageChanged;
 
-        var langRow = new FlowLayoutPanel
+        var row = new FlowLayoutPanel
         {
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             FlowDirection = FlowDirection.LeftToRight,
             WrapContents = false,
-            Margin = new Padding(14, 8, 14, 2),
+            Anchor = AnchorStyles.Right,
+            Margin = new Padding(0),
         };
-        langRow.Controls.Add(Cap(Strings.LabelLanguage));
-        langRow.Controls.Add(_cboLanguage);
 
-        var langHint = new Label
-        {
-            Text = Strings.HintLanguageRestart,
-            AutoSize = true,
-            ForeColor = SystemColors.GrayText,
-            Margin = new Padding(3, 7, 3, 3),
-        };
-        _hints.Add(langHint);
-        langRow.Controls.Add(langHint);
+        var hint = Hint(Strings.HintLanguageRestart);
+        hint.Margin = new Padding(3, 7, 14, 3);
+        row.Controls.Add(hint);
 
-        root.Controls.Add(langRow);
+        var caption = Cap(Strings.LabelLanguage);
+        caption.Margin = new Padding(3, 6, 8, 3);
+        row.Controls.Add(caption);
+        row.Controls.Add(_cboLanguage);
 
-        // --- Device and axis ---------------------------------------------------
-        var gd = Grid(4);
-        gd.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        gd.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        gd.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        gd.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        var header = Grid(1);
+        header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        header.Margin = new Padding(14, 8, 14, 4);
+        header.Controls.Add(row, 0, 0);
+        return header;
+    }
+
+    private Control BuildDeviceAndAxis()
+    {
+        var grid = Grid(4);
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
         _cboDevice.Dock = DockStyle.Fill;
-        _cboDevice.Margin = new Padding(3, 3, 8, 3);
+        _cboDevice.Margin = new Padding(3, 3, 10, 3);
         _cboDevice.SelectedIndexChanged += (_, _) => _previewZone = 0;
 
         _btnRefresh.Click += (_, _) => LoadDevices();
+        _btnRefresh.Margin = new Padding(3, 0, 0, 0);
 
-        gd.Controls.Add(Cap(Strings.LabelDevice), 0, 0);
-        gd.Controls.Add(_cboDevice, 1, 0);
-        gd.SetColumnSpan(_cboDevice, 2);
-        gd.Controls.Add(_btnRefresh, 3, 0);
+        grid.Controls.Add(Cap(Strings.LabelDevice), 0, 0);
+        grid.Controls.Add(_cboDevice, 1, 0);
+        grid.SetColumnSpan(_cboDevice, 2);
+        grid.Controls.Add(_btnRefresh, 3, 0);
 
         _cboAxis.Items.AddRange(Joystick.AxisNames);
         _cboAxis.Width = 80;
         _cboAxis.Anchor = AnchorStyles.Left;
-        _cboAxis.SelectedIndexChanged += (_, _) => _previewZone = 0;
+        _cboAxis.Margin = new Padding(3, 8, 3, 3);
+        _cboAxis.SelectedIndexChanged += OnAxisChanged;
 
-        var hint = new Label
+        var hint = Hint(Strings.HintAxis);
+        hint.Anchor = AnchorStyles.Left;
+        hint.Margin = new Padding(14, 13, 3, 3);
+
+        var axisCaption = Cap(Strings.LabelAxis);
+        axisCaption.Margin = new Padding(3, 12, 8, 6);
+
+        grid.Controls.Add(axisCaption, 0, 1);
+        grid.Controls.Add(_cboAxis, 1, 1);
+        grid.Controls.Add(hint, 2, 1);
+        grid.SetColumnSpan(hint, 2);
+
+        var rows = new TableLayoutPanel
         {
-            Text = Strings.HintAxis,
-            AutoSize = true,
-            Anchor = AnchorStyles.Left,
-            ForeColor = SystemColors.GrayText,
-            Margin = new Padding(12, 7, 3, 3),
-        };
-        _hints.Add(hint);
-
-        gd.Controls.Add(Cap(Strings.LabelAxis), 0, 1);
-        gd.Controls.Add(_cboAxis, 1, 1);
-        gd.Controls.Add(hint, 2, 1);
-        gd.SetColumnSpan(hint, 2);
-
-        var axes = new TableLayoutPanel
-        {
-            ColumnCount = 3,
+            ColumnCount = 1,
             RowCount = Joystick.AxisNames.Length,
             Dock = DockStyle.Fill,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Margin = new Padding(3, 8, 3, 3),
+            Margin = new Padding(0, 10, 0, 0),
         };
-        axes.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        axes.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        axes.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        rows.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
         for (int i = 0; i < Joystick.AxisNames.Length; i++)
         {
-            axes.Controls.Add(new Label
-            {
-                Text = Joystick.AxisNames[i],
-                AutoSize = true,
-                Anchor = AnchorStyles.Left,
-                Margin = new Padding(3, 4, 10, 4),
-            }, 0, i);
-
-            _axisValue[i] = new Label
-            {
-                Text = "-",
-                AutoSize = true,
-                Anchor = AnchorStyles.Right,
-                MinimumSize = new Size(52, 0),
-                TextAlign = ContentAlignment.MiddleRight,
-                Margin = new Padding(3, 4, 12, 4),
-            };
-            axes.Controls.Add(_axisValue[i], 1, i);
-
-            _axisBar[i] = new ProgressBar
-            {
-                Minimum = 0, Maximum = 65535,
-                Dock = DockStyle.Fill,
-                Height = 16,
-                // Without a minimum, a percent column contributes almost nothing to
-                // the preferred size and the window opens with the bars squashed.
-                MinimumSize = new Size(240, 16),
-                Margin = new Padding(3, 4, 3, 4),
-            };
-            axes.Controls.Add(_axisBar[i], 2, i);
+            var row = new AxisRow(Joystick.AxisNames[i]);
+            row.Chosen += (s, _) => _cboAxis.SelectedItem = ((AxisRow)s!).Axis;
+            _axisRow[i] = row;
+            rows.Controls.Add(row, 0, i);
         }
 
-        gd.Controls.Add(axes, 0, 2);
-        gd.SetColumnSpan(axes, 4);
+        grid.Controls.Add(rows, 0, 2);
+        grid.SetColumnSpan(rows, 4);
+        return grid;
+    }
 
-        root.Controls.Add(Group(Strings.GroupDeviceAndAxis, gd));
-
-        // --- Calibration -------------------------------------------------------
-        var gc = Grid(5);
-        for (int i = 0; i < 4; i++) gc.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        gc.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+    private Control BuildCalibration()
+    {
+        var grid = Grid(5);
+        for (int i = 0; i < 4; i++) grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
         _btnCalibrate.Click += OnCalibrateClick;
         _btnCalibrate.Anchor = AnchorStyles.Left;
-        _btnCalibrate.Margin = new Padding(20, 3, 3, 3);
+        _btnCalibrate.Margin = new Padding(20, 0, 3, 0);
 
-        _lblMin.Margin = new Padding(3, 6, 24, 6);
-        _lblMax.Margin = new Padding(3, 6, 12, 6);
+        _lblMin.Font = Theme.Mono(9F);
+        _lblMax.Font = Theme.Mono(9F);
+        _lblMin.Margin = new Padding(3, 7, 26, 6);
+        _lblMax.Margin = new Padding(3, 7, 14, 6);
 
-        gc.Controls.Add(Cap(Strings.LabelMinimum), 0, 0);
-        gc.Controls.Add(_lblMin, 1, 0);
-        gc.Controls.Add(Cap(Strings.LabelMaximum), 2, 0);
-        gc.Controls.Add(_lblMax, 3, 0);
-        gc.Controls.Add(_btnCalibrate, 4, 0);
+        grid.Controls.Add(Cap(Strings.LabelMinimum), 0, 0);
+        grid.Controls.Add(_lblMin, 1, 0);
+        grid.Controls.Add(Cap(Strings.LabelMaximum), 2, 0);
+        grid.Controls.Add(_lblMax, 3, 0);
+        grid.Controls.Add(_btnCalibrate, 4, 0);
 
         _chkInvert.CheckedChanged += (_, _) => { _cfg.Invert = _chkInvert.Checked; _previewZone = 0; };
-        _chkInvert.Margin = new Padding(3, 10, 3, 3);
-        gc.Controls.Add(_chkInvert, 0, 1);
-        gc.SetColumnSpan(_chkInvert, 5);
+        _chkInvert.Margin = new Padding(3, 14, 3, 3);
+        grid.Controls.Add(_chkInvert, 0, 1);
+        grid.SetColumnSpan(_chkInvert, 5);
 
-        _chkEbInAxis.CheckedChanged += (_, _) => { _cfg.IncludeEmergencyInAxis = _chkEbInAxis.Checked; _previewZone = 0; };
-        _chkEbInAxis.Margin = new Padding(3, 6, 3, 3);
-        gc.Controls.Add(_chkEbInAxis, 0, 2);
-        gc.SetColumnSpan(_chkEbInAxis, 5);
+        _chkEbInAxis.CheckedChanged += OnEbOnHandleChanged;
+        _chkEbInAxis.Margin = new Padding(3, 8, 3, 3);
+        grid.Controls.Add(_chkEbInAxis, 0, 2);
+        grid.SetColumnSpan(_chkEbInAxis, 5);
 
         _numHyst.ValueChanged += (_, _) => _cfg.Hysteresis = (double)_numHyst.Value;
         _numHyst.Anchor = AnchorStyles.Left;
-        _numHyst.Margin = new Padding(3, 8, 3, 3);
+        _numHyst.Margin = new Padding(3, 10, 3, 3);
+        _numHyst.BorderStyle = BorderStyle.FixedSingle;
 
         var capHyst = Cap(Strings.LabelHysteresis);
-        capHyst.Margin = new Padding(3, 12, 8, 6);
-        gc.Controls.Add(capHyst, 0, 3);
-        gc.Controls.Add(_numHyst, 1, 3);
+        capHyst.Margin = new Padding(3, 14, 8, 6);
+        grid.Controls.Add(capHyst, 0, 3);
+        grid.Controls.Add(_numHyst, 1, 3);
+        return grid;
+    }
 
-        root.Controls.Add(Group(Strings.GroupCalibration, gc));
-
-        // --- Virtual device ----------------------------------------------------
+    private Control BuildVirtualDevice()
+    {
         // Both columns AutoSize: a control spanning into a Percent column is not
         // measured properly, and the hint below spans the pair.
-        var gm = Grid(2);
-        gm.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        gm.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        var grid = Grid(2);
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
         foreach (var m in Zuiki.KnownModels)
             _cboModel.Items.Add(new ModelItem(m.Model, $"{m.Model}   ·   {m.Vid:X4}:{m.Pid:X4}"));
@@ -331,75 +366,88 @@ public sealed class MainForm : Form
         _cboModel.Margin = new Padding(3, 3, 12, 3);
         _cboModel.SelectedIndexChanged += (_, _) => _cfg.Model = SelectedModel();
 
-        gm.Controls.Add(Cap(Strings.LabelModel), 0, 0);
-        gm.Controls.Add(_cboModel, 1, 0);
+        grid.Controls.Add(Cap(Strings.LabelModel), 0, 0);
+        grid.Controls.Add(_cboModel, 1, 0);
 
-        var modelHint = new Label
-        {
-            Text = string.Format(Strings.HintModel, Zuiki.DefaultModel),
-            AutoSize = true,
-            ForeColor = SystemColors.GrayText,
-            Margin = new Padding(3, 8, 3, 3),
-        };
-        _hints.Add(modelHint);
-        gm.Controls.Add(modelHint, 0, 1);
-        gm.SetColumnSpan(modelHint, 2);
+        var hint = Hint(string.Format(Strings.HintModel, Zuiki.DefaultModel));
+        hint.Margin = new Padding(3, 10, 3, 0);
+        grid.Controls.Add(hint, 0, 1);
+        grid.SetColumnSpan(hint, 2);
+        return grid;
+    }
 
-        root.Controls.Add(Group(Strings.GroupVirtualDevice, gm));
-
-        // --- Current notch -----------------------------------------------------
-        var gr = Grid(1);
-        gr.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-
-        _lblNotch.Font = new Font(Font.FontFamily, 22F, FontStyle.Bold);
-        _lblNotch.Text = "--";
-        _lblNotch.Margin = new Padding(3, 2, 3, 2);
-        gr.Controls.Add(_lblNotch, 0, 0);
-
-        _lblRaw.Margin = new Padding(3, 2, 3, 8);
-        gr.Controls.Add(_lblRaw, 0, 1);
-
-        _barNotch.Dock = DockStyle.Fill;
-        gr.Controls.Add(_barNotch, 0, 2);
-
-        root.Controls.Add(Group(Strings.GroupCurrentNotch, gr));
-
-        // --- Actions -----------------------------------------------------------
-        var ga = new TableLayoutPanel
+    private Control BuildActions()
+    {
+        var grid = new TableLayoutPanel
         {
             ColumnCount = 3,
             Dock = DockStyle.Fill,
             AutoSize = true,
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
-            Padding = new Padding(14, 6, 14, 4),
+            Margin = new Padding(14, 8, 14, 0),
         };
-        ga.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        ga.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        ga.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
         _btnStartStop.Click += OnStartStopClick;
-        _btnStartStop.Padding = new Padding(14, 8, 14, 8);
-        _btnStartStop.ImageAlign = ContentAlignment.MiddleLeft;
-        _btnStartStop.TextAlign = ContentAlignment.MiddleRight;
-        _btnStartStop.TextImageRelation = TextImageRelation.ImageBeforeText;
+        _btnStartStop.Margin = new Padding(0);
 
         _btnSave.Click += OnSaveClick;
-        _btnSave.Padding = new Padding(14, 8, 14, 8);
+        _btnSave.Anchor = AnchorStyles.Right;
 
-        _lblStatus.Anchor = AnchorStyles.Left;
-        _lblStatus.Margin = new Padding(16, 12, 16, 3);
+        _status.Anchor = AnchorStyles.Left;
+        _status.Margin = new Padding(14, 6, 14, 3);
+        _status.Show(Strings.StatusStopped, StatusPill.Tone.Idle);
 
-        ga.Controls.Add(_btnStartStop, 0, 0);
-        ga.Controls.Add(_lblStatus, 1, 0);
-        ga.Controls.Add(_btnSave, 2, 0);
+        grid.Controls.Add(_btnStartStop, 0, 0);
+        grid.Controls.Add(_status, 1, 0);
+        grid.Controls.Add(_btnSave, 2, 0);
 
-        _lblPath.Margin = new Padding(3, 10, 3, 3);
-        ga.Controls.Add(_lblPath, 0, 1);
-        ga.SetColumnSpan(_lblPath, 3);
+        var pathRow = BuildPathRow();
+        grid.Controls.Add(pathRow, 0, 1);
+        grid.SetColumnSpan(pathRow, 3);
+        return grid;
+    }
 
-        root.Controls.Add(ga);
+    /// <summary>
+    /// The path is one unbreakable word, so wrapping it cost three lines and still
+    /// broke it mid-directory. It gets one line and an ellipsis instead, with the
+    /// whole thing on the tooltip.
+    /// </summary>
+    private Control BuildPathRow()
+    {
+        var row = new TableLayoutPanel
+        {
+            ColumnCount = 2,
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Margin = new Padding(0, LogicalToDeviceUnits(14), 0, 0),
+        };
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-        Controls.Add(root);
+        var caption = new Label
+        {
+            Text = Strings.HintButtonsInFile,
+            AutoSize = true,
+            Font = Theme.Ui(8.25F),
+            ForeColor = Theme.Muted,
+            Margin = new Padding(3, 0, 8, 0),
+        };
+
+        _lblPath.AutoSize = false;
+        _lblPath.AutoEllipsis = true;
+        _lblPath.Dock = DockStyle.Fill;
+        _lblPath.Font = Theme.Mono(8.25F);
+        _lblPath.TextAlign = ContentAlignment.TopLeft;
+        _lblPath.Height = Math.Max(Theme.LineHeight(caption.Font), Theme.LineHeight(_lblPath.Font));
+        _lblPath.Margin = new Padding(0);
+
+        row.Controls.Add(caption, 0, 0);
+        row.Controls.Add(_lblPath, 1, 0);
+        return row;
     }
 
     // -------------------------------------------------------------------------
@@ -419,7 +467,7 @@ public sealed class MainForm : Form
 
         if (_cboDevice.Items.Count == 0)
         {
-            _lblStatus.Text = Strings.StatusNoJoystick;
+            _status.Show(Strings.StatusNoJoystick, StatusPill.Tone.Warn);
             return;
         }
 
@@ -462,11 +510,26 @@ public sealed class MainForm : Form
             _cboModel.SelectedIndex = 0;
     }
 
+    private void OnAxisChanged(object? sender, EventArgs e)
+    {
+        _previewZone = 0;
+        string axis = SelectedAxis();
+        foreach (var row in _axisRow) row.Active = row.Axis == axis;
+    }
+
+    private void OnEbOnHandleChanged(object? sender, EventArgs e)
+    {
+        _cfg.IncludeEmergencyInAxis = _chkEbInAxis.Checked;
+        _notch.EbOnHandle = _chkEbInAxis.Checked;
+        _previewZone = 0;
+    }
+
     private void ConfigToUi()
     {
         SelectDevice(_cfg.AxisDeviceId);
         _cboAxis.SelectedItem = _cfg.AxisName;
         if (_cboAxis.SelectedIndex < 0) _cboAxis.SelectedIndex = 0;
+        OnAxisChanged(this, EventArgs.Empty);
 
         SelectModel(_cfg.Model);
 
@@ -484,8 +547,10 @@ public sealed class MainForm : Form
         _lblMax.Text = _cfg.AxisMax.ToString();
         _chkInvert.Checked = _cfg.Invert;
         _chkEbInAxis.Checked = _cfg.IncludeEmergencyInAxis;
+        _notch.EbOnHandle = _cfg.IncludeEmergencyInAxis;
         _numHyst.Value = (decimal)Math.Clamp(_cfg.Hysteresis, 0, 0.49);
-        _lblPath.Text = string.Format(Strings.HintButtonsInFile, _configPath);
+        _lblPath.Text = _configPath;
+        _tips.SetToolTip(_lblPath, _configPath);
     }
 
     private void UiToConfig()
@@ -505,16 +570,12 @@ public sealed class MainForm : Form
         int devId = SelectedDeviceId();
         if (devId < 0 || !Joystick.TryRead(devId, out var j))
         {
-            foreach (var lbl in _axisValue) lbl.Text = "-";
+            foreach (var row in _axisRow) row.Reading = -1;
             return;
         }
 
         for (int i = 0; i < Joystick.AxisNames.Length; i++)
-        {
-            int v = Joystick.GetAxis(j, Joystick.AxisNames[i]);
-            _axisValue[i].Text = v >= 0 ? v.ToString() : "-";
-            _axisBar[i].Value = Math.Clamp(v, 0, 65535);
-        }
+            _axisRow[i].Reading = Joystick.GetAxis(j, Joystick.AxisNames[i]);
 
         int raw = Joystick.GetAxis(j, SelectedAxis());
 
@@ -536,17 +597,15 @@ public sealed class MainForm : Form
         if (_runner is { IsRunning: true })
         {
             var s = _runner.State;
-            _lblNotch.Text = $"{s.NotchName}   0x{s.NotchValue:X2}";
-            _lblRaw.Text = string.Format(Strings.NotchSending, s.RawAxis, s.Fraction * 100);
-            _barNotch.Maximum = Zuiki.Notches.Length - 1;
-            _barNotch.Value = Math.Clamp(s.NotchIndex, 0, _barNotch.Maximum);
+            _notch.Index = s.NotchIndex;
+            _notch.Detail = string.Format(Strings.NotchSending, s.RawAxis, s.Fraction * 100);
             return;
         }
 
         if (raw < 0)
         {
-            _lblNotch.Text = "--";
-            _lblRaw.Text = Strings.NotchAxisMissing;
+            _notch.Index = -1;
+            _notch.Detail = Strings.NotchAxisMissing;
             return;
         }
 
@@ -557,13 +616,8 @@ public sealed class MainForm : Form
         double p = BridgeRunner.AxisFraction(raw, _cfg);
         _previewZone = BridgeRunner.ZoneWithHysteresis(p, zones, _previewZone, _cfg.Hysteresis);
 
-        int idx = firstNotch + _previewZone;
-        var (name, value) = Zuiki.Notches[idx];
-
-        _lblNotch.Text = $"{name}   0x{value:X2}";
-        _lblRaw.Text = string.Format(Strings.NotchPreview, raw, p * 100);
-        _barNotch.Maximum = Zuiki.Notches.Length - 1;
-        _barNotch.Value = Math.Clamp(idx, 0, _barNotch.Maximum);
+        _notch.Index = firstNotch + _previewZone;
+        _notch.Detail = string.Format(Strings.NotchPreview, raw, p * 100);
     }
 
     // -------------------------------------------------------------------------
@@ -575,7 +629,7 @@ public sealed class MainForm : Form
             _calMin = int.MaxValue;
             _calMax = int.MinValue;
             _btnCalibrate.Text = Strings.ButtonCalibrateFinish;
-            _lblStatus.Text = Strings.StatusCalibrating;
+            _status.Show(Strings.StatusCalibrating, StatusPill.Tone.Busy);
             return;
         }
 
@@ -584,7 +638,7 @@ public sealed class MainForm : Form
 
         if (_calMin >= _calMax)
         {
-            _lblStatus.Text = Strings.StatusNoMovement;
+            _status.Show(Strings.StatusNoMovement, StatusPill.Tone.Warn);
             MessageBox.Show(this,
                 Strings.DialogCalibrationNoMovement,
                 Strings.DialogCalibrationTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -596,8 +650,16 @@ public sealed class MainForm : Form
         _cfg.AxisMax = _calMax;
         _lblMin.Text = _calMin.ToString();
         _lblMax.Text = _calMax.ToString();
-        _lblStatus.Text = _runner is { IsRunning: true } ? Strings.StatusBridgeRunning : Strings.StatusStopped;
+        ShowIdleStatus();
         _previewZone = 0;
+    }
+
+    private void ShowIdleStatus()
+    {
+        if (_runner is { IsRunning: true })
+            _status.Show(Strings.StatusBridgeRunning, StatusPill.Tone.Live);
+        else
+            _status.Show(Strings.StatusStopped, StatusPill.Tone.Idle);
     }
 
     private void OnStartStopClick(object? sender, EventArgs e)
@@ -610,7 +672,7 @@ public sealed class MainForm : Form
 
             SetEditingEnabled(true);
             ShowStartStop(running: false);
-            _lblStatus.Text = Strings.StatusStopped;
+            _status.Show(Strings.StatusStopped, StatusPill.Tone.Idle);
             _previewZone = 0;
             return;
         }
@@ -629,7 +691,7 @@ public sealed class MainForm : Form
             MessageBox.Show(this,
                 string.Format(Strings.DialogStartFailed, ex.GetType().Name, ex.Message),
                 Strings.DialogStartTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
-            _lblStatus.Text = Strings.StatusFailedToStart;
+            _status.Show(Strings.StatusFailedToStart, StatusPill.Tone.Warn);
             return;
         }
         finally
@@ -639,7 +701,7 @@ public sealed class MainForm : Form
 
         SetEditingEnabled(false);
         ShowStartStop(running: true);
-        _lblStatus.Text = Strings.StatusBridgeRunning;
+        _status.Show(Strings.StatusBridgeRunning, StatusPill.Tone.Live);
     }
 
     private void SetEditingEnabled(bool on)
@@ -655,46 +717,18 @@ public sealed class MainForm : Form
         _chkInvert.Enabled = on;
         _chkEbInAxis.Enabled = on;
         _numHyst.Enabled = on;
-    }
 
-    // Drawn rather than taken from a font: the obvious characters for this, U+25B6
-    // and U+25A0, come out as colour emoji in some Windows fonts, and the Japanese
-    // interface makes that more likely. Drawing also scales with the display.
-    private static Bitmap PlayGlyph(int size, Color colour)
-    {
-        var bmp = new Bitmap(size, size);
-        using var g = Graphics.FromImage(bmp);
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-        float inset = size * 0.18f;
-        var triangle = new[]
-        {
-            new PointF(inset, inset * 0.7f),
-            new PointF(inset, size - inset * 0.7f),
-            new PointF(size - inset, size / 2f),
-        };
-        using var brush = new SolidBrush(colour);
-        g.FillPolygon(brush, triangle);
-        return bmp;
-    }
-
-    private static Bitmap StopGlyph(int size, Color colour)
-    {
-        var bmp = new Bitmap(size, size);
-        using var g = Graphics.FromImage(bmp);
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-        float inset = size * 0.22f;
-        using var brush = new SolidBrush(colour);
-        g.FillRectangle(brush, inset, inset, size - inset * 2, size - inset * 2);
-        return bmp;
+        // Left readable rather than greyed: the readings stay live while the bridge
+        // runs, it is only picking a different axis that has to wait.
+        foreach (var row in _axisRow) row.Interactive = on;
     }
 
     /// <summary>Caption and glyph always change together, so they cannot disagree.</summary>
     private void ShowStartStop(bool running)
     {
+        _btnStartStop.Fill = running ? FlatButton.Look.Danger : FlatButton.Look.Primary;
+        _btnStartStop.Glyph = running ? FlatButton.Mark.Stop : FlatButton.Mark.Play;
         _btnStartStop.Text = running ? Strings.ButtonStopBridge : Strings.ButtonStartBridge;
-        _btnStartStop.Image = running ? _stopGlyph : _playGlyph;
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e)
@@ -727,7 +761,7 @@ public sealed class MainForm : Form
         try
         {
             _cfg.Save(_configPath);
-            _lblStatus.Text = Strings.StatusConfigurationSaved;
+            _status.Show(Strings.StatusConfigurationSaved, StatusPill.Tone.Live);
         }
         catch (Exception ex)
         {
@@ -740,16 +774,11 @@ public sealed class MainForm : Form
     {
         base.OnLoad(e);
 
-        // Cap the explanatory text so a long line wraps rather than widening the
-        // whole window. Without this, editing one sentence resizes the panel.
-        int cap = LogicalToDeviceUnits(640);
-        // Sized from the button's own font, so it tracks the display scaling.
-        int glyph = (int)Math.Round(_btnStartStop.Font.GetHeight() * 0.95);
-        _playGlyph = PlayGlyph(glyph, Color.FromArgb(0x2E, 0x7D, 0x32));
-        _stopGlyph = StopGlyph(glyph, Color.FromArgb(0xC6, 0x28, 0x28));
         ShowStartStop(_runner is { IsRunning: true });
 
-        _lblPath.MaximumSize = new Size(LogicalToDeviceUnits(640), 0);
+        // Cap the explanatory text so a long line wraps rather than widening the
+        // whole window. Without this, editing one sentence resizes the panel.
+        int cap = LogicalToDeviceUnits(400);
         foreach (var h in _hints) h.MaximumSize = new Size(cap, 0);
 
         // Width the model list from its widest entry rather than a fixed number,
@@ -767,15 +796,14 @@ public sealed class MainForm : Form
         PerformLayout();
         var pref = _root.PreferredSize;
 
-        ClientSize = new Size(Math.Max(pref.Width, LogicalToDeviceUnits(660)), pref.Height);
+        ClientSize = new Size(Math.Max(pref.Width, LogicalToDeviceUnits(820)), pref.Height);
         MinimumSize = Size;
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         _timer.Stop();
-        _playGlyph?.Dispose();
-        _stopGlyph?.Dispose();
+        _tips.Dispose();
         _runner?.Stop();
         _runner?.Dispose();
         base.OnFormClosing(e);
