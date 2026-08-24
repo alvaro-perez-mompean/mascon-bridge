@@ -31,10 +31,16 @@ S = {
     "ButtonSaveConfiguration": ("Save configuration", "設定を保存"),
 
     "CheckInvertAxis": ("Invert axis", "軸を反転"),
+    "CheckOverlay": (
+        "Show the notch over the game while the bridge runs",
+        "ブリッジ動作中、ゲームの上にノッチを表示する",
+    ),
     "CheckPowerRelease": ("Power, N to P1", "力行、N から P1"),
     "CheckEmergencyRelease": ("Emergency, B8 to EB", "非常、B8 から EB"),
 
     "ButtonLearnRelease": ("Choose button", "ボタンを選ぶ"),
+    "ButtonOverlayPlace": ("Place it", "位置を決める"),
+    "ButtonOverlayPlaceDone": ("Done", "完了"),
     "ButtonLearnCancel": ("Cancel", "中止"),
 
     # --- hints -------------------------------------------------------------
@@ -51,6 +57,13 @@ S = {
         "ボタンとハットはファイルで編集します:",
     ),
     "GroupCatches": ("Handle catches", "ハンドルの引っかかり"),
+    "GroupOverlay": ("Overlay", "オーバーレイ"),
+    "HintOverlay": (
+        "The mouse goes straight through it while you play. Press Place it to drag it"
+        " where you want, which shows it even with the bridge stopped.",
+        "プレイ中はマウスがそのまま通り抜けます。「位置を決める」を押すとドラッグでき、"
+        "ブリッジ停止中でも表示されます。",
+    ),
     "HintCatches": (
         "Tick an end to make the handle need a button before it may cross into it, as"
         " the real mascon does. Only crossing is guarded: once across you can let go,"

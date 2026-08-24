@@ -39,14 +39,19 @@ public static class Strings
         "ButtonStopBridge",
         "ButtonSaveConfiguration",
         "CheckInvertAxis",
+        "CheckOverlay",
         "CheckPowerRelease",
         "CheckEmergencyRelease",
         "ButtonLearnRelease",
+        "ButtonOverlayPlace",
+        "ButtonOverlayPlaceDone",
         "ButtonLearnCancel",
         "HintAxis",
         "HintModel",
         "HintButtonsInFile",
         "GroupCatches",
+        "GroupOverlay",
+        "HintOverlay",
         "HintCatches",
         "HintReleaseNotSet",
         "HintReleaseBinding",
@@ -116,14 +121,19 @@ public static class Strings
     public static string ButtonStopBridge => Get(nameof(ButtonStopBridge));
     public static string ButtonSaveConfiguration => Get(nameof(ButtonSaveConfiguration));
     public static string CheckInvertAxis => Get(nameof(CheckInvertAxis));
+    public static string CheckOverlay => Get(nameof(CheckOverlay));
     public static string CheckPowerRelease => Get(nameof(CheckPowerRelease));
     public static string CheckEmergencyRelease => Get(nameof(CheckEmergencyRelease));
     public static string ButtonLearnRelease => Get(nameof(ButtonLearnRelease));
+    public static string ButtonOverlayPlace => Get(nameof(ButtonOverlayPlace));
+    public static string ButtonOverlayPlaceDone => Get(nameof(ButtonOverlayPlaceDone));
     public static string ButtonLearnCancel => Get(nameof(ButtonLearnCancel));
     public static string HintAxis => Get(nameof(HintAxis));
     public static string HintModel => Get(nameof(HintModel));
     public static string HintButtonsInFile => Get(nameof(HintButtonsInFile));
     public static string GroupCatches => Get(nameof(GroupCatches));
+    public static string GroupOverlay => Get(nameof(GroupOverlay));
+    public static string HintOverlay => Get(nameof(HintOverlay));
     public static string HintCatches => Get(nameof(HintCatches));
     public static string HintReleaseNotSet => Get(nameof(HintReleaseNotSet));
     public static string HintReleaseBinding => Get(nameof(HintReleaseBinding));

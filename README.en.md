@@ -31,6 +31,12 @@ the travel into notches and publishes them as a mascon.
   <img src="assets/screenshot-en.png" alt="The control panel" width="620">
 </p>
 
+<p align="center">
+  <img src="assets/overlay-screenshot.jpg" alt="The notch overlay on top of the game" width="620">
+  <br>
+  <sub>The notch overlay on top of the game. The mouse goes straight through it.</sub>
+</p>
+
 ## How it works
 
 The ZUIKI mascon is an ordinary HID joystick with one peculiarity: its handle is the
@@ -131,6 +137,13 @@ panel:
   the cam's extra force, so each becomes a button you choose by pressing it. Only
   crossing is guarded: once across you can let go, and coming back sets the catch
   again. Braking is never held back by the power catch.
+- The **overlay**, on by default: while the bridge runs, the fifteen notches are drawn
+  as a vertical strip on top of the game, laid out like the lever itself — emergency at
+  the top, full power at the bottom — with the notch named beside it. The mouse passes
+  straight through it, so it can never eat a click meant for the game. **Place it** drags it where you want and shows it even with the bridge stopped.
+  It only draws over a game running windowed or borderless — a game in exclusive
+  fullscreen owns the display, and nothing short of hooking its renderer would appear
+  over it.
 - The **current notch** in large type, live. This works with the bridge stopped, as a
   preview, so calibration and inversion can be checked without creating any device.
 - **Model**, which mascon to impersonate. Leave it alone unless the game ignores the
@@ -259,6 +272,7 @@ the driver with competitive titles that ship kernel level anti-cheat.
 | `Theme.cs` | The palette, the type scale and the drawing helpers the window shares |
 | `NotchDisplay.cs` | The notch scale: EB, B8 to B1, N, P1 to P5, lit one at a time |
 | `Card.cs` / `AxisRow.cs` / `CatchRow.cs` / `FlatButton.cs` / `StatusPill.cs` | The hand painted controls the panel is built from |
+| `OverlayWindow.cs` / `OverlayPlacement.cs` | The notch strip drawn over the game, and where it is put |
 | `Config.cs` / `config.json` | Configuration |
 | `Program.cs` | Entry point and console modes |
 | `zuiki-zkns001.json` | The HIDMaestro profile as JSON, if you prefer loading it from disk |
