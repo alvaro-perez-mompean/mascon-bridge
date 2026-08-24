@@ -56,7 +56,9 @@ public sealed class MainForm : Form
         Minimum = 0, Maximum = 14, Height = 20, MinimumSize = new Size(300, 20),
     };
 
-    private readonly Button _btnStartStop = new() { Text = Strings.ButtonStartBridge, AutoSize = true };
+    private readonly Button _btnStartStop = new() { AutoSize = true };
+    private Bitmap? _playGlyph;
+    private Bitmap? _stopGlyph;
     private readonly Button _btnSave = new() { Text = Strings.ButtonSaveConfiguration, AutoSize = true };
     private readonly Label _lblStatus = new() { AutoSize = true, Text = Strings.StatusStopped };
     private readonly Label _lblPath = new() { AutoSize = true, ForeColor = SystemColors.GrayText };
@@ -377,6 +379,9 @@ public sealed class MainForm : Form
 
         _btnStartStop.Click += OnStartStopClick;
         _btnStartStop.Padding = new Padding(14, 8, 14, 8);
+        _btnStartStop.ImageAlign = ContentAlignment.MiddleLeft;
+        _btnStartStop.TextAlign = ContentAlignment.MiddleRight;
+        _btnStartStop.TextImageRelation = TextImageRelation.ImageBeforeText;
 
         _btnSave.Click += OnSaveClick;
         _btnSave.Padding = new Padding(14, 8, 14, 8);
@@ -604,7 +609,7 @@ public sealed class MainForm : Form
             _runner = null;
 
             SetEditingEnabled(true);
-            _btnStartStop.Text = Strings.ButtonStartBridge;
+            ShowStartStop(running: false);
             _lblStatus.Text = Strings.StatusStopped;
             _previewZone = 0;
             return;
@@ -633,7 +638,7 @@ public sealed class MainForm : Form
         }
 
         SetEditingEnabled(false);
-        _btnStartStop.Text = Strings.ButtonStopBridge;
+        ShowStartStop(running: true);
         _lblStatus.Text = Strings.StatusBridgeRunning;
     }
 
@@ -650,6 +655,46 @@ public sealed class MainForm : Form
         _chkInvert.Enabled = on;
         _chkEbInAxis.Enabled = on;
         _numHyst.Enabled = on;
+    }
+
+    // Drawn rather than taken from a font: the obvious characters for this, U+25B6
+    // and U+25A0, come out as colour emoji in some Windows fonts, and the Japanese
+    // interface makes that more likely. Drawing also scales with the display.
+    private static Bitmap PlayGlyph(int size, Color colour)
+    {
+        var bmp = new Bitmap(size, size);
+        using var g = Graphics.FromImage(bmp);
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+        float inset = size * 0.18f;
+        var triangle = new[]
+        {
+            new PointF(inset, inset * 0.7f),
+            new PointF(inset, size - inset * 0.7f),
+            new PointF(size - inset, size / 2f),
+        };
+        using var brush = new SolidBrush(colour);
+        g.FillPolygon(brush, triangle);
+        return bmp;
+    }
+
+    private static Bitmap StopGlyph(int size, Color colour)
+    {
+        var bmp = new Bitmap(size, size);
+        using var g = Graphics.FromImage(bmp);
+        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+        float inset = size * 0.22f;
+        using var brush = new SolidBrush(colour);
+        g.FillRectangle(brush, inset, inset, size - inset * 2, size - inset * 2);
+        return bmp;
+    }
+
+    /// <summary>Caption and glyph always change together, so they cannot disagree.</summary>
+    private void ShowStartStop(bool running)
+    {
+        _btnStartStop.Text = running ? Strings.ButtonStopBridge : Strings.ButtonStartBridge;
+        _btnStartStop.Image = running ? _stopGlyph : _playGlyph;
     }
 
     private void OnLanguageChanged(object? sender, EventArgs e)
@@ -698,6 +743,12 @@ public sealed class MainForm : Form
         // Cap the explanatory text so a long line wraps rather than widening the
         // whole window. Without this, editing one sentence resizes the panel.
         int cap = LogicalToDeviceUnits(640);
+        // Sized from the button's own font, so it tracks the display scaling.
+        int glyph = (int)Math.Round(_btnStartStop.Font.GetHeight() * 0.95);
+        _playGlyph = PlayGlyph(glyph, Color.FromArgb(0x2E, 0x7D, 0x32));
+        _stopGlyph = StopGlyph(glyph, Color.FromArgb(0xC6, 0x28, 0x28));
+        ShowStartStop(_runner is { IsRunning: true });
+
         _lblPath.MaximumSize = new Size(LogicalToDeviceUnits(640), 0);
         foreach (var h in _hints) h.MaximumSize = new Size(cap, 0);
 
@@ -723,6 +774,8 @@ public sealed class MainForm : Form
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         _timer.Stop();
+        _playGlyph?.Dispose();
+        _stopGlyph?.Dispose();
         _runner?.Stop();
         _runner?.Dispose();
         base.OnFormClosing(e);
