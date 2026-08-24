@@ -83,13 +83,25 @@ jobs:
         run: |
           # Self contained: the people who download this should not need to install
           # a .NET runtime first.
+          #
+          # Single file: everything is packed into the executable, so the unzipped
+          # folder holds the program and nothing else. Moving the loose DLLs into a
+          # lib\ folder is not an option for a self contained build, because the
+          # host resolves coreclr, hostpolicy and friends next to the executable.
           dotnet publish MasconBridge.csproj `
               -c Release `
               -r win-x64 `
               --self-contained true `
+              -p:PublishSingleFile=true `
+              -p:IncludeNativeLibrariesForSelfExtract=true `
               -p:Version=${{ steps.version.outputs.version }} `
               -p:DebugType=none `
               -o publish
+
+          Write-Host "Published:"
+          Get-ChildItem publish -File | ForEach-Object {
+              "  {0,-24} {1,8:N1} MB" -f $_.Name, ($_.Length / 1MB)
+          }
 
       - name: Stage the package
         shell: pwsh
