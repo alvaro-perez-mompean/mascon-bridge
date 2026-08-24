@@ -66,6 +66,9 @@
   <data name="CheckInvertAxis" xml:space="preserve">
     <value>軸を反転</value>
   </data>
+  <data name="CheckOverlay" xml:space="preserve">
+    <value>ブリッジ動作中、ゲームの上にノッチを表示する</value>
+  </data>
   <data name="CheckPowerRelease" xml:space="preserve">
     <value>力行、N から P1</value>
   </data>
@@ -74,6 +77,12 @@
   </data>
   <data name="ButtonLearnRelease" xml:space="preserve">
     <value>ボタンを選ぶ</value>
+  </data>
+  <data name="ButtonOverlayPlace" xml:space="preserve">
+    <value>位置を決める</value>
+  </data>
+  <data name="ButtonOverlayPlaceDone" xml:space="preserve">
+    <value>完了</value>
   </data>
   <data name="ButtonLearnCancel" xml:space="preserve">
     <value>中止</value>
@@ -90,6 +99,12 @@
   </data>
   <data name="GroupCatches" xml:space="preserve">
     <value>ハンドルの引っかかり</value>
+  </data>
+  <data name="GroupOverlay" xml:space="preserve">
+    <value>オーバーレイ</value>
+  </data>
+  <data name="HintOverlay" xml:space="preserve">
+    <value>プレイ中はマウスがそのまま通り抜けます。「位置を決める」を押すとドラッグでき、ブリッジ停止中でも表示されます。</value>
   </data>
   <data name="HintCatches" xml:space="preserve">
     <value>端にチェックを入れると、ハンドルがそこへ越えるときにボタンが必要になります。実車の親指ボタンと、非常側の押し込むカムにあたります。守られているのは越えるときだけで、越えたあとは離してかまいません。戻ればまた掛かります。</value>

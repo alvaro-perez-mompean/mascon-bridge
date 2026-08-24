@@ -52,6 +52,17 @@ public sealed class MainForm : Form
     private readonly CatchRow _catchPower = new(Strings.CheckPowerRelease);
     private readonly CatchRow _catchEmergency = new(Strings.CheckEmergencyRelease);
 
+    private readonly CheckBox _chkOverlay = new()
+    {
+        Text = Strings.CheckOverlay, AutoSize = true,
+    };
+    private readonly FlatButton _btnPlaceOverlay = new(FlatButton.Look.Plain)
+    {
+        Text = Strings.ButtonOverlayPlace,
+    };
+
+    private OverlayWindow? _overlay;
+    private bool _placingOverlay;
 
     private readonly ComboBox _cboModel = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly ComboBox _cboLanguage = new() { DropDownStyle = ComboBoxStyle.DropDownList };
@@ -206,9 +217,26 @@ public sealed class MainForm : Form
             AutoSizeMode = AutoSizeMode.GrowAndShrink,
             Margin = new Padding(LogicalToDeviceUnits(7), 0, LogicalToDeviceUnits(7), 0),
         };
+        // The axis readings never fill their card, so the catches go under them
+        // rather than making the other column taller still.
+        var left = new TableLayoutPanel
+        {
+            ColumnCount = 1,
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            Margin = new Padding(0),
+        };
+        left.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        left.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        left.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        left.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        left.Controls.Add(new Card(Strings.GroupDeviceAndAxis, BuildDeviceAndAxis()), 0, 0);
+        left.Controls.Add(new Card(Strings.GroupOverlay, BuildOverlay()), 0, 1);
+
         body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
         body.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
-        body.Controls.Add(new Card(Strings.GroupDeviceAndAxis, BuildDeviceAndAxis()), 0, 0);
+        body.Controls.Add(left, 0, 0);
         body.Controls.Add(right, 1, 0);
         return body;
     }
@@ -353,6 +381,26 @@ public sealed class MainForm : Form
         capHyst.Margin = new Padding(3, 14, 8, 6);
         grid.Controls.Add(capHyst, 0, 2);
         grid.Controls.Add(_numHyst, 1, 2);
+        return grid;
+    }
+
+    private Control BuildOverlay()
+    {
+        var grid = Grid(1);
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+        _chkOverlay.CheckedChanged += OnOverlayEnabledChanged;
+        _chkOverlay.Margin = new Padding(3, 4, 3, 3);
+        grid.Controls.Add(_chkOverlay, 0, 0);
+
+        _btnPlaceOverlay.Click += OnPlaceOverlayClick;
+        _btnPlaceOverlay.Anchor = AnchorStyles.Left;
+        _btnPlaceOverlay.Margin = new Padding(22, 8, 3, 3);
+        grid.Controls.Add(_btnPlaceOverlay, 0, 1);
+
+        var hint = Hint(Strings.HintOverlay);
+        hint.Margin = new Padding(3, 8, 3, 3);
+        grid.Controls.Add(hint, 0, 2);
         return grid;
     }
 
@@ -544,6 +592,66 @@ public sealed class MainForm : Form
         foreach (var row in _axisRow) row.Active = row.Axis == axis;
     }
 
+    private void OnOverlayEnabledChanged(object? sender, EventArgs e)
+    {
+        _cfg.OverlayEnabled = _chkOverlay.Checked;
+        if (!_chkOverlay.Checked && !_placingOverlay) CloseOverlay();
+        _btnPlaceOverlay.Enabled = _chkOverlay.Checked;
+    }
+
+    private void OnPlaceOverlayClick(object? sender, EventArgs e)
+    {
+        _placingOverlay = !_placingOverlay;
+        _btnPlaceOverlay.Text = _placingOverlay
+            ? Strings.ButtonOverlayPlaceDone
+            : Strings.ButtonOverlayPlace;
+
+        if (_placingOverlay) ShowOverlay();
+        else if (_runner is not { IsRunning: true }) CloseOverlay();
+
+        if (_overlay is not null) _overlay.Movable = _placingOverlay;
+    }
+
+    private void ShowOverlay()
+    {
+        if (_overlay is null)
+        {
+            _overlay = new OverlayWindow();
+            _overlay.Moved += (_, _) => StoreOverlayPosition();
+            _overlay.Location = StartingOverlayPosition(_overlay.Size);
+        }
+
+        if (!_overlay.Visible) _overlay.Show(this);
+    }
+
+    private Point StartingOverlayPosition(Size size)
+    {
+        var screens = Screen.AllScreens.Select(sc => sc.WorkingArea).ToList();
+
+        if (_cfg.OverlayX == int.MinValue || _cfg.OverlayY == int.MinValue)
+            return OverlayPlacement.Default(size,
+                screens.Count > 0 ? screens[0] : Screen.PrimaryScreen!.WorkingArea);
+
+        return OverlayPlacement.Clamp(new Point(_cfg.OverlayX, _cfg.OverlayY), size, screens);
+    }
+
+    private void StoreOverlayPosition()
+    {
+        if (_overlay is null) return;
+        _cfg.OverlayX = _overlay.Left;
+        _cfg.OverlayY = _overlay.Top;
+    }
+
+    private void CloseOverlay()
+    {
+        if (_overlay is null) return;
+
+        StoreOverlayPosition();
+        _overlay.Close();
+        _overlay.Dispose();
+        _overlay = null;
+    }
+
     private void OnCatchChanged(object? sender, EventArgs e)
     {
         _cfg.PowerReleaseDeviceId = _catchPower.DeviceId;
@@ -580,6 +688,11 @@ public sealed class MainForm : Form
         _lblMax.Text = _cfg.AxisMax.ToString();
         _chkInvert.Checked = _cfg.Invert;
         _numHyst.Value = (decimal)Math.Clamp(_cfg.Hysteresis, 0, 0.49);
+
+        _chkOverlay.CheckedChanged -= OnOverlayEnabledChanged;
+        _chkOverlay.Checked = _cfg.OverlayEnabled;
+        _chkOverlay.CheckedChanged += OnOverlayEnabledChanged;
+        _btnPlaceOverlay.Enabled = _cfg.OverlayEnabled;
 
         _catchPower.SetBinding(_cfg.PowerReleaseDeviceId, _cfg.PowerReleaseButton);
         _catchEmergency.SetBinding(_cfg.EmergencyReleaseDeviceId, _cfg.EmergencyReleaseButton);
@@ -639,6 +752,7 @@ public sealed class MainForm : Form
             _notch.EmergencyHeld = s.EmergencyHeld;
             _notch.Detail = HeldDetail(s.PowerHeld, s.EmergencyHeld)
                 ?? string.Format(Strings.NotchSending, s.RawAxis, s.Fraction * 100);
+            _overlay?.SetNotch(s.NotchIndex, s.PowerHeld, s.EmergencyHeld);
             return;
         }
 
@@ -671,6 +785,7 @@ public sealed class MainForm : Form
         _notch.EmergencyHeld = _previewEmergency.Held;
         _notch.Detail = HeldDetail(_previewPower.Held, _previewEmergency.Held)
             ?? string.Format(Strings.NotchPreview, raw, p * 100);
+        _overlay?.SetNotch(index, _previewPower.Held, _previewEmergency.Held);
 
         static bool Pressed(int device, int button) =>
             Joystick.TryRead(device, out var j) && Joystick.IsButtonDown(j, button);
@@ -736,6 +851,7 @@ public sealed class MainForm : Form
             ShowStartStop(running: false);
             _status.Show(Strings.StatusStopped, StatusPill.Tone.Idle);
             _previewZone = 0;
+            if (!_placingOverlay) CloseOverlay();
             return;
         }
 
@@ -764,6 +880,8 @@ public sealed class MainForm : Form
         SetEditingEnabled(false);
         ShowStartStop(running: true);
         _status.Show(Strings.StatusBridgeRunning, StatusPill.Tone.Live);
+
+        if (_cfg.OverlayEnabled) ShowOverlay();
     }
 
     private void SetEditingEnabled(bool on)
@@ -870,6 +988,7 @@ public sealed class MainForm : Form
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         _timer.Stop();
+        CloseOverlay();
         _tips.Dispose();
         _runner?.Stop();
         _runner?.Dispose();

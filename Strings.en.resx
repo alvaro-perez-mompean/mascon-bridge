@@ -66,6 +66,9 @@
   <data name="CheckInvertAxis" xml:space="preserve">
     <value>Invert axis</value>
   </data>
+  <data name="CheckOverlay" xml:space="preserve">
+    <value>Show the notch over the game while the bridge runs</value>
+  </data>
   <data name="CheckPowerRelease" xml:space="preserve">
     <value>Power, N to P1</value>
   </data>
@@ -74,6 +77,12 @@
   </data>
   <data name="ButtonLearnRelease" xml:space="preserve">
     <value>Choose button</value>
+  </data>
+  <data name="ButtonOverlayPlace" xml:space="preserve">
+    <value>Place it</value>
+  </data>
+  <data name="ButtonOverlayPlaceDone" xml:space="preserve">
+    <value>Done</value>
   </data>
   <data name="ButtonLearnCancel" xml:space="preserve">
     <value>Cancel</value>
@@ -90,6 +99,12 @@ Only change this if the game ignores the mascon.</value>
   </data>
   <data name="GroupCatches" xml:space="preserve">
     <value>Handle catches</value>
+  </data>
+  <data name="GroupOverlay" xml:space="preserve">
+    <value>Overlay</value>
+  </data>
+  <data name="HintOverlay" xml:space="preserve">
+    <value>The mouse goes straight through it while you play. Press Place it to drag it where you want, which shows it even with the bridge stopped.</value>
   </data>
   <data name="HintCatches" xml:space="preserve">
     <value>Tick an end to make the handle need a button before it may cross into it, as the real mascon does. Only crossing is guarded: once across you can let go, and coming back sets the catch again.</value>

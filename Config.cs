@@ -55,6 +55,19 @@ public sealed class Config
     // --- Buttons ---
     public List<ButtonBinding> Buttons { get; set; } = new();
 
+    // --- Overlay ---
+    /// <summary>The notch strip drawn over the game while the bridge runs.</summary>
+    public bool OverlayEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Where it was left. int.MinValue means it has never been placed, so it starts
+    /// against the right hand edge; a position on a monitor that is gone is pulled
+    /// back onto a screen rather than leaving it invisible.
+    /// </summary>
+    public int OverlayX { get; set; } = int.MinValue;
+
+    public int OverlayY { get; set; } = int.MinValue;
+
     // --- Virtual device ---
     public string Model { get; set; } = Zuiki.DefaultModel;
 
