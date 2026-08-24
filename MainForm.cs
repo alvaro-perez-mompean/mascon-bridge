@@ -118,6 +118,11 @@ public sealed class MainForm : Form
         StartPosition = FormStartPosition.CenterScreen;
         AutoScaleMode = AutoScaleMode.Font;
 
+        // Reuse the icon already embedded in the executable by ApplicationIcon,
+        // rather than shipping a second copy as a resource.
+        try { Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath); }
+        catch { /* the window just keeps the default icon */ }
+
         var root = new TableLayoutPanel
         {
             ColumnCount = 1,
