@@ -284,8 +284,8 @@ public sealed class MainForm : Form
         foreach (var m in Zuiki.KnownModels)
             _cboModel.Items.Add(new ModelItem(m.Model, $"{m.Model}   ·   {m.Vid:X4}:{m.Pid:X4}"));
 
+        // Width is set in OnLoad, once the display's real font is known.
         _cboModel.Anchor = AnchorStyles.Left;
-        _cboModel.Width = 200;
         _cboModel.Margin = new Padding(3, 3, 12, 3);
         _cboModel.SelectedIndexChanged += (_, _) => _cfg.Model = SelectedModel();
 
@@ -628,6 +628,16 @@ public sealed class MainForm : Form
         int cap = LogicalToDeviceUnits(640);
         _lblPath.MaximumSize = new Size(LogicalToDeviceUnits(640), 0);
         foreach (var h in _hints) h.MaximumSize = new Size(cap, 0);
+
+        // Width the model list from its widest entry rather than a fixed number,
+        // which would get clipped as soon as the display scaling or a model name
+        // changes. Measured here, not while building, so the font is the one this
+        // display actually renders with.
+        int widestItem = _cboModel.Items.Cast<object>()
+            .Select(i => TextRenderer.MeasureText(i.ToString(), _cboModel.Font).Width)
+            .DefaultIfEmpty(LogicalToDeviceUnits(160))
+            .Max();
+        _cboModel.Width = widestItem + SystemInformation.VerticalScrollBarWidth + LogicalToDeviceUnits(24);
 
         // Size the window to what the layout engine actually measured, with this
         // display's font and scaling already applied.
