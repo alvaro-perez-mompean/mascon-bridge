@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Drawing;
 
 namespace MasconBridge;
@@ -75,7 +76,11 @@ public sealed class MainForm : Form
         Text = Strings.ButtonSaveConfiguration,
     };
     private readonly StatusPill _status = new();
-
+    private readonly LinkLabel _lnkVersion = new() { AutoSize = true };
+    private readonly CheckBox _chkUpdates = new()
+    {
+        Text = Strings.CheckForUpdates, AutoSize = true,
+    };
     private readonly Label _lblPath = new() { ForeColor = Theme.Muted };
     private readonly ToolTip _tips = new();
 
@@ -95,6 +100,7 @@ public sealed class MainForm : Form
     public bool LanguageChanged { get; private set; }
 
     private bool _suppressLanguageEvent;
+    private readonly CancellationTokenSource _closing = new();
     private bool _calibrating;
     private NotchCatch _previewPower = NotchCatch.Power();
     private NotchCatch _previewEmergency = NotchCatch.Emergency();
@@ -102,9 +108,9 @@ public sealed class MainForm : Form
     private int _calMax = int.MinValue;
     private int _previewZone;
 
-    public MainForm()
+    public MainForm(string? explicitConfigPath = null)
     {
-        _configPath = ResolveConfigPath();
+        _configPath = Config.Resolve(explicitConfigPath);
         _cfg = Config.Load(_configPath);
 
         BuildUi();
@@ -116,18 +122,6 @@ public sealed class MainForm : Form
     }
 
     // -------------------------------------------------------------------------
-    private static string ResolveConfigPath()
-    {
-        // Config.DefaultPath is relative to the working directory, which can be
-        // anything when the window is opened by double click. Fall back to the
-        // file sitting next to the executable.
-        var here = Path.GetFullPath(Config.DefaultPath);
-        if (File.Exists(here)) return here;
-
-        var beside = Path.Combine(AppContext.BaseDirectory, Config.DefaultPath);
-        return File.Exists(beside) ? beside : here;
-    }
-
     private static Label Cap(string text) => new()
     {
         Text = text, AutoSize = true, Anchor = AnchorStyles.Left,
@@ -271,10 +265,24 @@ public sealed class MainForm : Form
         row.Controls.Add(caption);
         row.Controls.Add(_cboLanguage);
 
-        var header = Grid(1);
+        _lnkVersion.Text = string.Format(Strings.LabelVersion, UpdateCheck.CurrentVersion);
+        _lnkVersion.Font = Theme.Ui(8.25F);
+        _lnkVersion.LinkColor = Theme.Accent;
+        _lnkVersion.ActiveLinkColor = Theme.AccentDeep;
+        _lnkVersion.ForeColor = Theme.Muted;
+        _lnkVersion.Anchor = AnchorStyles.Left;
+        _lnkVersion.Margin = new Padding(3, 7, 3, 3);
+        // Plain text until there is something to click: knowing the version is worth
+        // a corner, and a link that goes nowhere is worse than none.
+        _lnkVersion.LinkArea = new LinkArea(0, 0);
+        _lnkVersion.LinkClicked += (_, _) => OpenReleasesPage();
+
+        var header = Grid(2);
+        header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         header.Margin = new Padding(14, 8, 14, 4);
-        header.Controls.Add(row, 0, 0);
+        header.Controls.Add(_lnkVersion, 0, 0);
+        header.Controls.Add(row, 1, 0);
         return header;
     }
 
@@ -520,8 +528,18 @@ public sealed class MainForm : Form
         _lblPath.Height = Math.Max(Theme.LineHeight(caption.Font), Theme.LineHeight(_lblPath.Font));
         _lblPath.Margin = new Padding(0);
 
+        _chkUpdates.Font = Theme.Ui(8.25F);
+        _chkUpdates.ForeColor = Theme.Muted;
+        _chkUpdates.Anchor = AnchorStyles.Right;
+        _chkUpdates.Margin = new Padding(LogicalToDeviceUnits(14), 0, 0, 0);
+        _chkUpdates.CheckedChanged += (_, _) => _cfg.CheckForUpdates = _chkUpdates.Checked;
+
+        row.ColumnCount = 3;
+        row.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
         row.Controls.Add(caption, 0, 0);
         row.Controls.Add(_lblPath, 1, 0);
+        row.Controls.Add(_chkUpdates, 2, 0);
         return row;
     }
 
@@ -697,6 +715,7 @@ public sealed class MainForm : Form
         _catchPower.SetBinding(_cfg.PowerReleaseDeviceId, _cfg.PowerReleaseButton);
         _catchEmergency.SetBinding(_cfg.EmergencyReleaseDeviceId, _cfg.EmergencyReleaseButton);
 
+        _chkUpdates.Checked = _cfg.CheckForUpdates;
         _lblPath.Text = _configPath;
         _tips.SetToolTip(_lblPath, _configPath);
     }
@@ -983,11 +1002,44 @@ public sealed class MainForm : Form
 
         ClientSize = new Size(Math.Max(pref.Width, LogicalToDeviceUnits(820)), pref.Height);
         MinimumSize = Size;
+
+        if (_cfg.CheckForUpdates) _ = LookForUpdate();
+    }
+
+    /// <summary>
+    /// Deliberately quiet: it runs after the window is up, never blocks it, and says
+    /// nothing at all unless there is a newer release. A failed check is not news.
+    /// </summary>
+    private async Task LookForUpdate()
+    {
+        string? tag = await UpdateCheck.LatestTagAsync(_closing.Token).ConfigureAwait(true);
+
+        if (IsDisposed || _closing.IsCancellationRequested) return;
+        if (!UpdateCheck.IsNewer(tag, UpdateCheck.CurrentVersion)) return;
+
+        string text = string.Format(Strings.LinkUpdateAvailable, tag!.TrimStart('v', 'V'));
+        _lnkVersion.Text = text;
+        _lnkVersion.LinkArea = new LinkArea(0, text.Length);
+        _lnkVersion.ForeColor = Theme.Accent;
+    }
+
+    private void OpenReleasesPage()
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(UpdateCheck.ReleasesUrl) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"{ex.GetType().Name}: {ex.Message}",
+                Strings.DialogStartTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
         _timer.Stop();
+        _closing.Cancel();
         CloseOverlay();
         _tips.Dispose();
         _runner?.Stop();

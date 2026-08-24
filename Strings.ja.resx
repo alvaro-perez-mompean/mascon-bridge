@@ -118,6 +118,15 @@
   <data name="HintReleasePress" xml:space="preserve">
     <value>使いたいボタンを押してください。</value>
   </data>
+  <data name="LabelVersion" xml:space="preserve">
+    <value>バージョン {0}</value>
+  </data>
+  <data name="LinkUpdateAvailable" xml:space="preserve">
+    <value>バージョン {0} が公開されています</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>更新を確認する</value>
+  </data>
   <data name="HintLanguageRestart" xml:space="preserve">
     <value>変更するとウィンドウが開き直します。</value>
   </data>

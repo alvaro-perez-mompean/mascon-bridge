@@ -139,11 +139,15 @@ panel:
   again. Braking is never held back by the power catch.
 - The **overlay**, on by default: while the bridge runs, the fifteen notches are drawn
   as a vertical strip on top of the game, laid out like the lever itself — emergency at
-  the top, full power at the bottom — with the notch named beside it. The mouse passes
-  straight through it, so it can never eat a click meant for the game. **Place it** drags it where you want and shows it even with the bridge stopped.
+  the top, full power at the bottom — with the notch named beside it. The mouse passes straight through it, so it can never eat a click meant for the
+  game. **Place it** drags it where you want and shows it even with the bridge stopped.
   It only draws over a game running windowed or borderless — a game in exclusive
   fullscreen owns the display, and nothing short of hooking its renderer would appear
   over it.
+- The **version**, top left. When a newer release has been published it turns into a
+  link to the releases page. The check is one request to GitHub at startup, it
+  downloads and installs nothing, and **Check for updates** at the bottom of the window
+  switches it off.
 - The **current notch** in large type, live. This works with the bridge stopped, as a
   preview, so calibration and inversion can be checked without creating any device.
 - **Model**, which mascon to impersonate. Leave it alone unless the game ignores the
@@ -155,8 +159,15 @@ panel:
 In the game's Steam properties, **leave Steam Input enabled**. Unlike the official JR
 East controller, the ZUIKI mascon needs it.
 
-`config.json` is written on first run and is not part of the repository — it holds the
-device numbers and calibration of one particular machine. Delete it to start over.
+`config.json` is written on first run, in `%APPDATA%\mascon-bridge\`. It lives outside
+the program's folder so that updating cannot lose it: a release unzips into a folder
+named after its version, and settings kept beside the executable would be left behind
+every time, calibration and bindings with them. An older install that has a
+`config.json` next to the executable is copied across the first time, not abandoned.
+
+The window shows the file it is using along the bottom. `--config <path>` uses a
+different one, for keeping several setups or working in a source tree. Delete the file
+to start over.
 
 Buttons and the hat are configured in `config.json`. Each entry names a physical device
 and button number and the mascon button it maps to (`Y`, `B`, `A`, `X`, `L`, `R`, `ZL`,
@@ -273,7 +284,8 @@ the driver with competitive titles that ship kernel level anti-cheat.
 | `NotchDisplay.cs` | The notch scale: EB, B8 to B1, N, P1 to P5, lit one at a time |
 | `Card.cs` / `AxisRow.cs` / `CatchRow.cs` / `FlatButton.cs` / `StatusPill.cs` | The hand painted controls the panel is built from |
 | `OverlayWindow.cs` / `OverlayPlacement.cs` | The notch strip drawn over the game, and where it is put |
-| `Config.cs` / `config.json` | Configuration |
+| `Config.cs` / `config.json` | Configuration, and where it lives |
+| `UpdateCheck.cs` | Whether a newer release has been published |
 | `Program.cs` | Entry point and console modes |
 | `zuiki-zkns001.json` | The HIDMaestro profile as JSON, if you prefer loading it from disk |
 | `mascon-bridge.cmd` | Convenience launcher for a source tree: elevates, then opens the executable from under `bin\`. Not needed with a release, where the executable is right there |

@@ -18,7 +18,63 @@ public sealed class ButtonBinding
 
 public sealed class Config
 {
-    public const string DefaultPath = "config.json";
+    public const string FileName = "config.json";
+
+    /// <summary>Kept for callers that want a bare relative path.</summary>
+    public const string DefaultPath = FileName;
+
+    /// <summary>
+    /// %APPDATA%\mascon-bridge\config.json — outside the program's own folder on
+    /// purpose. A release unzips into a folder named after its version, so a
+    /// configuration living beside the executable would be left behind by every
+    /// update, taking the calibration and every binding with it.
+    /// </summary>
+    public static string InAppData => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "mascon-bridge", FileName);
+
+    /// <summary>
+    /// Where this run reads and writes its settings.
+    ///
+    /// An explicit path always wins. Otherwise the one in %APPDATA% is used, and the
+    /// first time a configuration is found beside the executable instead — an install
+    /// from before this moved — it is copied across rather than abandoned.
+    /// </summary>
+    public static string Resolve(string? explicitPath, string appData, params string[] legacy)
+    {
+        if (!string.IsNullOrWhiteSpace(explicitPath)) return Path.GetFullPath(explicitPath);
+        if (File.Exists(appData)) return appData;
+
+        foreach (var old in legacy)
+        {
+            if (!File.Exists(old)) continue;
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(appData)!);
+                File.Copy(old, appData);
+                return appData;
+            }
+            catch (IOException)
+            {
+                // Nothing to gain from failing here: the old file still works.
+                return old;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return old;
+            }
+        }
+
+        return appData;
+    }
+
+    /// <summary>The everyday case: no explicit path, the real folders.</summary>
+    public static string Resolve(string? explicitPath = null) => Resolve(
+        explicitPath,
+        InAppData,
+        Path.GetFullPath(FileName),
+        Path.Combine(AppContext.BaseDirectory, FileName));
 
     // --- Handle ---
     public int AxisDeviceId { get; set; } = 1;
@@ -79,6 +135,12 @@ public sealed class Config
     public int PollMs { get; set; } = 8;
 
     // --- Interface ---
+    /// <summary>
+    /// Ask GitHub once at startup whether a newer release exists. Nothing is
+    /// downloaded either way; the window only offers a link.
+    /// </summary>
+    public bool CheckForUpdates { get; set; } = true;
+
     /// <summary>Language code, "ja" or "en". See Language.Supported.</summary>
     public string Language { get; set; } = MasconBridge.Language.Default;
 
@@ -94,6 +156,7 @@ public sealed class Config
         if (!File.Exists(path))
         {
             var fresh = Default();
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
             File.WriteAllText(path, JsonSerializer.Serialize(fresh, Opts));
             Console.WriteLine(string.Format(Strings.ConfigCreatedSample, path));
             return fresh;
@@ -104,7 +167,11 @@ public sealed class Config
     }
 
     public void Save(string path)
-        => File.WriteAllText(path, JsonSerializer.Serialize(this, Opts));
+    {
+        // The %APPDATA% folder does not exist until something writes there.
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        File.WriteAllText(path, JsonSerializer.Serialize(this, Opts));
+    }
 
     /// <summary>
     /// Written on first run. Deliberately neutral: the control panel picks the first

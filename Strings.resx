@@ -118,6 +118,15 @@ Only change this if the game ignores the mascon.</value>
   <data name="HintReleasePress" xml:space="preserve">
     <value>Press the button you want to use.</value>
   </data>
+  <data name="LabelVersion" xml:space="preserve">
+    <value>version {0}</value>
+  </data>
+  <data name="LinkUpdateAvailable" xml:space="preserve">
+    <value>version {0} is available</value>
+  </data>
+  <data name="CheckForUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
   <data name="HintLanguageRestart" xml:space="preserve">
     <value>The window reopens when you change this.</value>
   </data>

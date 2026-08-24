@@ -56,6 +56,9 @@ public static class Strings
         "HintReleaseNotSet",
         "HintReleaseBinding",
         "HintReleasePress",
+        "LabelVersion",
+        "LinkUpdateAvailable",
+        "CheckForUpdates",
         "HintLanguageRestart",
         "StatusStopped",
         "StatusBridgeRunning",
@@ -138,6 +141,9 @@ public static class Strings
     public static string HintReleaseNotSet => Get(nameof(HintReleaseNotSet));
     public static string HintReleaseBinding => Get(nameof(HintReleaseBinding));
     public static string HintReleasePress => Get(nameof(HintReleasePress));
+    public static string LabelVersion => Get(nameof(LabelVersion));
+    public static string LinkUpdateAvailable => Get(nameof(LinkUpdateAvailable));
+    public static string CheckForUpdates => Get(nameof(CheckForUpdates));
     public static string HintLanguageRestart => Get(nameof(HintLanguageRestart));
     public static string StatusStopped => Get(nameof(StatusStopped));
     public static string StatusBridgeRunning => Get(nameof(StatusBridgeRunning));
