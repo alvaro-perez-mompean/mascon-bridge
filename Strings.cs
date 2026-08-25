@@ -48,6 +48,8 @@ public static class Strings
         "ButtonLearnCancel",
         "HintAxis",
         "HintModel",
+        "LabelDeviceName",
+        "HintDeviceName",
         "HintButtonsInFile",
         "GroupCatches",
         "GroupOverlay",
@@ -148,6 +150,8 @@ public static class Strings
     public static string ButtonLearnCancel => Get(nameof(ButtonLearnCancel));
     public static string HintAxis => Get(nameof(HintAxis));
     public static string HintModel => Get(nameof(HintModel));
+    public static string LabelDeviceName => Get(nameof(LabelDeviceName));
+    public static string HintDeviceName => Get(nameof(HintDeviceName));
     public static string HintButtonsInFile => Get(nameof(HintButtonsInFile));
     public static string GroupCatches => Get(nameof(GroupCatches));
     public static string GroupOverlay => Get(nameof(GroupOverlay));

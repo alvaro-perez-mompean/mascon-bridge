@@ -52,6 +52,17 @@ S = {
         "{0} is the default controller.\nOnly change this if the game ignores the mascon.",
         "{0} が既定のコントローラーです。\nゲームがマスコンを認識しない場合のみ変更してください。",
     ),
+    "LabelDeviceName": ("Name:", "名前:"),
+    "HintDeviceName": (
+        "What the device calls itself. Leave it empty for mascon-bridge.\n"
+        "The game matches on the ids and never reads this, but some third party "
+        "tools -- a BVE input plugin, say -- look for the name of the real mascon.\n"
+        "Takes effect the next time the bridge starts.",
+        "デバイスが名乗る名前です。空欄なら mascon-bridge になります。\n"
+        "ゲームは ID で判定するためこの名前を見ませんが、BVE の入力プラグインなど、"
+        "実機の名前で探す外部ツールがあります。\n"
+        "次にブリッジを開始したときから反映されます。",
+    ),
     "HintButtonsInFile": ("Settings file:", "設定ファイル:"),
     "GroupCatches": ("Handle catches", "ハンドルの引っかかり"),
     "GroupOverlay": ("Overlay", "オーバーレイ"),

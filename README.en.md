@@ -241,6 +241,17 @@ If the game does not react, work through the other `33DD` models before suspecti
 anything else. Close and reopen the game on each round — it enumerates controllers at
 startup, so switching model while it runs proves nothing.
 
+### The name beside it
+
+The **Name** box is what the device calls itself. Leave it empty and it is
+`mascon-bridge`. The game never reads it — Steam and the game both match on the vendor
+and product ids, which is why the bridge does not borrow the real mascon's name.
+
+It is there for third party software that does look at the name. A BVE Trainsim input
+plugin, for instance, can map a device to a profile by name, in which case entering the
+real mascon's name is what makes the profile match. It takes effect the next time the
+bridge starts, and it is `"ProductString"` in `config.json`.
+
 `try-model.ps1` automates that loop from a console:
 
 ```powershell

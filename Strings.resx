@@ -94,6 +94,14 @@
     <value>{0} is the default controller.
 Only change this if the game ignores the mascon.</value>
   </data>
+  <data name="LabelDeviceName" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="HintDeviceName" xml:space="preserve">
+    <value>What the device calls itself. Leave it empty for mascon-bridge.
+The game matches on the ids and never reads this, but some third party tools -- a BVE input plugin, say -- look for the name of the real mascon.
+Takes effect the next time the bridge starts.</value>
+  </data>
   <data name="HintButtonsInFile" xml:space="preserve">
     <value>Settings file:</value>
   </data>
