@@ -15,7 +15,7 @@
     <!-- Release builds override this from the git tag: -p:Version=1.2.3. Kept in
          step with the last release so a local build does not claim to be older than
          it is: the window shows this, and the update check compares against it. -->
-    <Version>0.2.2</Version>
+    <Version>0.2.3</Version>
     <Product>Mascon Bridge</Product>
     <Description>Maps an analogue axis on any joystick or lever to a virtual ZUIKI One Handle MasCon.</Description>
     <!-- WFO1000 wants every property of a control to say how a designer should
