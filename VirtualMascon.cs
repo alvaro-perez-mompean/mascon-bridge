@@ -17,6 +17,11 @@ public sealed class VirtualMascon : IDisposable
         // rights, but no reboot and no Windows test signing mode.
         _ctx.InstallDriver();
 
+        // Before the device appears, not after: Windows writes its name cache while
+        // enumerating, so a stale entry has to be gone by then or the Game
+        // Controllers panel keeps showing the previous name.
+        JoystickName.ClearIfStale(vid, pid, product);
+
         var profile = new HMProfileBuilder()
             .Id("mascon-bridge")
             .Name("mascon-bridge")
