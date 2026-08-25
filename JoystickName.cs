@@ -60,4 +60,31 @@ public static class JoystickName
         catch (System.Security.SecurityException) { return false; }
         catch (IOException) { return false; }
     }
+
+    /// <summary>
+    /// Writes the name in, after the device exists. Clearing the entry first is not
+    /// always enough: Windows refreshes its own copy under HKLM and can leave the per
+    /// user one out of date or absent, and that is the one the panel reads. So the
+    /// entry is checked once the device is there and corrected if it disagrees.
+    ///
+    /// Only ever writes the name this bridge is announcing, and only when the cache
+    /// says something else -- an entry that already agrees is somebody's business,
+    /// possibly a real mascon's, and is left alone.
+    /// </summary>
+    public static bool Ensure(ushort vid, ushort pid, string expected)
+    {
+        try
+        {
+            using var device = Registry.CurrentUser.CreateSubKey($@"{Root}\{KeyName(vid, pid)}");
+            if (device is null) return false;
+
+            if (device.GetValue("OEMName") as string == expected) return false;
+
+            device.SetValue("OEMName", expected, RegistryValueKind.String);
+            return true;
+        }
+        catch (UnauthorizedAccessException) { return false; }
+        catch (System.Security.SecurityException) { return false; }
+        catch (IOException) { return false; }
+    }
 }

@@ -36,6 +36,11 @@ public sealed class VirtualMascon : IDisposable
             .Build();
 
         _ctrl = _ctx.CreateController(profile);
+
+        // And again now that it exists. Windows keeps its own copy of the name up to
+        // date and does not always refresh the per user one, which is the copy the
+        // Game Controllers panel reads.
+        JoystickName.Ensure(vid, pid, product);
     }
 
     public void Submit(byte[] report) => _ctrl.SubmitRawReport(report);

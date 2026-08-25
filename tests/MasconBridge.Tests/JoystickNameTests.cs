@@ -34,4 +34,13 @@ public class JoystickNameTests
     [Fact]
     public void Case_counts_because_the_panel_shows_it_verbatim()
         => Assert.True(JoystickName.IsStale("Mascon-Bridge", "mascon-bridge"));
+
+    // Ensure and ClearIfStale touch the real registry, so what is testable here is
+    // the decision they share: an entry that disagrees is the only one to act on.
+    [Theory]
+    [InlineData("One Handle MasCon for Nintendo Switch", "mascon-bridge", true)]
+    [InlineData("mascon-bridge", "mascon-bridge", false)]
+    [InlineData(null, "mascon-bridge", false)]
+    public void Staleness_is_decided_only_by_disagreement(string? cached, string expected, bool stale)
+        => Assert.Equal(stale, JoystickName.IsStale(cached, expected));
 }
