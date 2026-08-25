@@ -94,6 +94,14 @@
     <value>{0} が既定のコントローラーです。
 ゲームがマスコンを認識しない場合のみ変更してください。</value>
   </data>
+  <data name="LabelDeviceName" xml:space="preserve">
+    <value>名前:</value>
+  </data>
+  <data name="HintDeviceName" xml:space="preserve">
+    <value>デバイスが名乗る名前です。空欄なら mascon-bridge になります。
+ゲームは ID で判定するためこの名前を見ませんが、BVE の入力プラグインなど、実機の名前で探す外部ツールがあります。
+次にブリッジを開始したときから反映されます。</value>
+  </data>
   <data name="HintButtonsInFile" xml:space="preserve">
     <value>設定ファイル:</value>
   </data>

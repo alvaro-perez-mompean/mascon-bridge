@@ -62,6 +62,10 @@ public sealed class MainForm : Form
         Text = Strings.ButtonOverlayPlace,
     };
     private readonly FlatButton _btnBindings = new(FlatButton.Look.Plain);
+    private readonly TextBox _txtProduct = new()
+    {
+        PlaceholderText = Zuiki.ProductName,
+    };
 
     private OverlayWindow? _overlay;
     private bool _placingOverlay;
@@ -445,11 +449,13 @@ public sealed class MainForm : Form
 
     private Control BuildVirtualDevice()
     {
-        // Both columns AutoSize: a control spanning into a Percent column is not
-        // measured properly, and the hint below spans the pair.
-        var grid = Grid(2);
+        // The first three columns AutoSize; the name takes what is left, so it can
+        // hold a long one without widening the window to fit it.
+        var grid = Grid(4);
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        grid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
         foreach (var m in Zuiki.KnownModels)
             _cboModel.Items.Add(new ModelItem(m.Model, $"{m.Model}   ·   {m.Vid:X4}:{m.Pid:X4}"));
@@ -459,14 +465,48 @@ public sealed class MainForm : Form
         _cboModel.Margin = new Padding(3, 3, 12, 3);
         _cboModel.SelectedIndexChanged += (_, _) => _cfg.Model = SelectedModel();
 
+        // The name shares the model's row rather than taking one of its own. The
+        // window has no spare height -- see the note about 1080p at 125% -- and this
+        // is a field almost nobody needs to touch.
+        // As wide as the card can spare without stretching the window: a full
+        // "One Handle MasCon for Nintendo Switch" would add another 20 mm of window
+        // for a field almost nobody edits. What does not fit is on the tooltip, and
+        // the box scrolls like any other.
+        _txtProduct.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        _txtProduct.Margin = new Padding(3, 3, 3, 3);
+        _txtProduct.MinimumSize = new Size(
+            Theme.Measure(new string('n', 34), _txtProduct.Font).Width, 0);
+        _txtProduct.TextChanged += (_, _) =>
+        {
+            var name = _txtProduct.Text.Trim();
+            _cfg.ProductString = name.Length == 0 ? null : name;
+            ShowProductTip();
+        };
+        ShowProductTip();
+
         grid.Controls.Add(Cap(Strings.LabelModel), 0, 0);
         grid.Controls.Add(_cboModel, 1, 0);
+        grid.Controls.Add(Cap(Strings.LabelDeviceName), 2, 0);
+        grid.Controls.Add(_txtProduct, 3, 0);
 
         var hint = Hint(string.Format(Strings.HintModel, Zuiki.DefaultModel));
         hint.Margin = new Padding(3, 10, 3, 0);
         grid.Controls.Add(hint, 0, 1);
-        grid.SetColumnSpan(hint, 2);
+        grid.SetColumnSpan(hint, 4);
         return grid;
+    }
+
+    /// <summary>
+    /// A name longer than the box gets read on the tooltip. Widening the box to fit
+    /// the longest plausible name would widen the whole window for a field that is
+    /// touched once, if ever.
+    /// </summary>
+    private void ShowProductTip()
+    {
+        var name = _txtProduct.Text.Trim();
+        _tips.SetToolTip(_txtProduct, name.Length == 0
+            ? Strings.HintDeviceName
+            : name + "\n\n" + Strings.HintDeviceName);
     }
 
     private Control BuildActions()
@@ -761,6 +801,7 @@ public sealed class MainForm : Form
         OnAxisChanged(this, EventArgs.Empty);
 
         SelectModel(_cfg.Model);
+        _txtProduct.Text = _cfg.ProductString ?? "";
 
         _suppressLanguageEvent = true;
         for (int i = 0; i < _cboLanguage.Items.Count; i++)
@@ -983,6 +1024,7 @@ public sealed class MainForm : Form
         _cboDevice.Enabled = on;
         _cboAxis.Enabled = on;
         _cboModel.Enabled = on;
+        _txtProduct.Enabled = on;
         _cboLanguage.Enabled = on;
         _btnRefresh.Enabled = on;
         _btnCalibrate.Enabled = on;
