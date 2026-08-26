@@ -189,6 +189,10 @@ under **Game** and every row takes the name its manual gives it, `ZL` included â
 manual prints in red and tells you not to use. The names are the game's defaults and
 Steam's controller settings can move them; **None** puts the page back to bare button names.
 
+<p align="center">
+  <img src="assets/screenshot-bindings-en.png" alt="The button assignment page" width="520">
+</p>
+
 ### Language
 
 The program speaks **Japanese by default**, and English if you pick it from the
