@@ -96,8 +96,8 @@ S = {
     "LabelHat": ("Hat", "ハット"),
     "HintHatBinding": ("device {0}", "デバイス {0}"),
     "HintHatPress": (
-        "Press any button on the device whose hat you want.",
-        "使いたいハットが付いている機器の、どれかのボタンを押してください。",
+        "Push the hat you want, or press any button on the device it is on.",
+        "使いたいハットを倒すか、その機器のどれかのボタンを押してください。",
     ),
     "HintBindingNone": ("not assigned", "未割り当て"),
     "ButtonClearBinding": ("Clear", "消す"),

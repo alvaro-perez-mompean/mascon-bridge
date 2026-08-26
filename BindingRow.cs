@@ -31,6 +31,9 @@ internal sealed class BindingRow : TableLayoutPanel
         Text = Strings.ButtonClearBinding,
     };
 
+    /// <summary>Buttons are numbered from 1, so nothing is ever button zero.</summary>
+    private const int NoButton = 0;
+
     private readonly bool _hat;
     private bool _learning;
 
@@ -153,6 +156,17 @@ internal sealed class BindingRow : TableLayoutPanel
         foreach (var (id, _) in Joystick.Enumerate())
         {
             if (!Joystick.TryRead(id, out var j)) continue;
+
+            // A hat row learns a device rather than a button, so pushing the hat
+            // answers the question as well as pressing a button does — and it is
+            // what the hand reaches for. There is no button to report with it: hat
+            // rows carry a device and nothing else.
+            if (_hat && Joystick.IsHatPushed(j))
+            {
+                StopLearning();
+                Captured?.Invoke(this, (id, NoButton));
+                return;
+            }
 
             var pressed = Joystick.PressedButtons(j);
             if (pressed.Count == 0) continue;

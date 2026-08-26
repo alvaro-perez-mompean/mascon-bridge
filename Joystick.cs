@@ -91,6 +91,16 @@ public static class Joystick
     public static bool IsButtonDown(in JoyInfoEx j, int button1Based)
         => button1Based >= 1 && button1Based <= 32 && (j.dwButtons & (1 << (button1Based - 1))) != 0;
 
+    /// <summary>
+    /// Whether the hat is being pushed right now. Centred reads as 65535, and so does
+    /// a device with no hat at all, which is what makes the value enough on its own.
+    ///
+    /// The JOYCAPS_HASPOV flag is not worth consulting alongside it: every joystick
+    /// on this hardware sets it, whether or not it is the one the hat is on, so it
+    /// narrows nothing down and would only risk refusing a hat that works.
+    /// </summary>
+    public static bool IsHatPushed(in JoyInfoEx j) => j.dwPOV >= 0 && j.dwPOV <= 35999;
+
     /// <summary>Converts the POV reading (hundredths of a degree) to the mascon's 8 way hat.</summary>
     public static byte PovToHat(int pov)
     {

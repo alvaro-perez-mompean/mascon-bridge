@@ -90,6 +90,38 @@ public class JoystickTests
             Assert.InRange(Joystick.PovToHat(pov), 0, 0x0F);
     }
 
+    [Theory]
+    [InlineData(0)]             // up
+    [InlineData(9000)]          // right
+    [InlineData(18000)]         // down
+    [InlineData(27000)]         // left
+    [InlineData(35999)]
+    public void A_pushed_hat_is_seen_as_pushed(int pov)
+    {
+        Assert.True(Joystick.IsHatPushed(new Joystick.JoyInfoEx { dwPOV = pov }));
+    }
+
+    [Theory]
+    [InlineData(-1)]            // winmm reports -1 when the hat is centred
+    [InlineData(65535)]         // and 65535 on some drivers, and on hardware with no
+    [InlineData(36000)]         // hat at all -- which is what stops a throttle with
+    [InlineData(99999)]         // no hat answering the moment the row starts listening
+    public void An_idle_or_out_of_range_pov_is_not_pushed(int pov)
+    {
+        Assert.False(Joystick.IsHatPushed(new Joystick.JoyInfoEx { dwPOV = pov }));
+    }
+
+    [Fact]
+    public void Pushed_and_centred_agree_with_the_direction_the_bridge_sends()
+    {
+        // The two readings must not disagree: a hat the bindings page treats as
+        // pushed but the bridge sends as centred would bind something that then
+        // does nothing.
+        for (int pov = -1; pov < 36100; pov += 97)
+            Assert.Equal(Joystick.IsHatPushed(new Joystick.JoyInfoEx { dwPOV = pov }),
+                         Joystick.PovToHat(pov) != Zuiki.HatCentered);
+    }
+
     // --- Buttons -------------------------------------------------------------
 
     [Fact]
