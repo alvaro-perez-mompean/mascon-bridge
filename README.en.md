@@ -175,6 +175,10 @@ the button you want on your hardware, and it is bound. Nothing is bound out of t
 guessing which button of yours is `A` would only fire something in the game with nothing
 on screen to explain it.
 
+The hat row is the exception: it takes a whole **device** rather than one button, since
+the four directions come together. Push the hat itself, or press any button on the
+device it is on.
+
 The same mascon button can be reached from several physical buttons, on different
 devices if you like: pressing another one adds it rather than replacing what is there.
 **Clear** drops every button bound to that one. It is all still `config.json` underneath,

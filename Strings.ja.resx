@@ -142,7 +142,7 @@
     <value>デバイス {0}</value>
   </data>
   <data name="HintHatPress" xml:space="preserve">
-    <value>使いたいハットが付いている機器の、どれかのボタンを押してください。</value>
+    <value>使いたいハットを倒すか、その機器のどれかのボタンを押してください。</value>
   </data>
   <data name="HintBindingNone" xml:space="preserve">
     <value>未割り当て</value>

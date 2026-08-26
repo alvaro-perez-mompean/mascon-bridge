@@ -142,7 +142,7 @@ Takes effect the next time the bridge starts.</value>
     <value>device {0}</value>
   </data>
   <data name="HintHatPress" xml:space="preserve">
-    <value>Press any button on the device whose hat you want.</value>
+    <value>Push the hat you want, or press any button on the device it is on.</value>
   </data>
   <data name="HintBindingNone" xml:space="preserve">
     <value>not assigned</value>
