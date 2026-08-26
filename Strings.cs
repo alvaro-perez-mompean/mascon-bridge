@@ -69,6 +69,23 @@ public static class Strings
         "ButtonDialogOk",
         "ButtonDialogCancel",
         "HintEmergencyButton",
+        "LabelGame",
+        "GameNone",
+        "GameJrEast",
+        "HintGameDefaults",
+        "FunctionAtsConfirmation",
+        "FunctionHornLevel1",
+        "FunctionHornLevel2",
+        "FunctionDeadmanReset",
+        "FunctionAlarmStop",
+        "FunctionSpeedSuppression1",
+        "FunctionCruiseControl",
+        "FunctionSwitchCabinView",
+        "FunctionPauseGame",
+        "FunctionScreenshot",
+        "FunctionDoNotUse",
+        "FunctionNotInManual",
+        "FunctionHat",
         "LabelVersion",
         "LinkUpdateAvailable",
         "CheckForUpdates",
@@ -171,6 +188,23 @@ public static class Strings
     public static string ButtonDialogOk => Get(nameof(ButtonDialogOk));
     public static string ButtonDialogCancel => Get(nameof(ButtonDialogCancel));
     public static string HintEmergencyButton => Get(nameof(HintEmergencyButton));
+    public static string LabelGame => Get(nameof(LabelGame));
+    public static string GameNone => Get(nameof(GameNone));
+    public static string GameJrEast => Get(nameof(GameJrEast));
+    public static string HintGameDefaults => Get(nameof(HintGameDefaults));
+    public static string FunctionAtsConfirmation => Get(nameof(FunctionAtsConfirmation));
+    public static string FunctionHornLevel1 => Get(nameof(FunctionHornLevel1));
+    public static string FunctionHornLevel2 => Get(nameof(FunctionHornLevel2));
+    public static string FunctionDeadmanReset => Get(nameof(FunctionDeadmanReset));
+    public static string FunctionAlarmStop => Get(nameof(FunctionAlarmStop));
+    public static string FunctionSpeedSuppression1 => Get(nameof(FunctionSpeedSuppression1));
+    public static string FunctionCruiseControl => Get(nameof(FunctionCruiseControl));
+    public static string FunctionSwitchCabinView => Get(nameof(FunctionSwitchCabinView));
+    public static string FunctionPauseGame => Get(nameof(FunctionPauseGame));
+    public static string FunctionScreenshot => Get(nameof(FunctionScreenshot));
+    public static string FunctionDoNotUse => Get(nameof(FunctionDoNotUse));
+    public static string FunctionNotInManual => Get(nameof(FunctionNotInManual));
+    public static string FunctionHat => Get(nameof(FunctionHat));
     public static string LabelVersion => Get(nameof(LabelVersion));
     public static string LinkUpdateAvailable => Get(nameof(LinkUpdateAvailable));
     public static string CheckForUpdates => Get(nameof(CheckForUpdates));

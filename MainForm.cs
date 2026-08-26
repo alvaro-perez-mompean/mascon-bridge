@@ -632,11 +632,12 @@ public sealed class MainForm : Form
 
     private void OnEditBindingsClick(object? sender, EventArgs e)
     {
-        using var dialog = new BindingsDialog(_cfg.Buttons, _cfg.HatDeviceId);
+        using var dialog = new BindingsDialog(_cfg.Buttons, _cfg.HatDeviceId, _cfg.Game);
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
 
         _cfg.Buttons = dialog.Buttons;
         _cfg.HatDeviceId = dialog.HatDeviceId;
+        _cfg.Game = dialog.Game;
 
         // Saved straight away: the alternative is choosing buttons, closing the
         // window and finding out later that none of it was kept.

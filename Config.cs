@@ -152,6 +152,12 @@ public sealed class Config
     /// <summary>Language code, "ja" or "en". See Language.Supported.</summary>
     public string Language { get; set; } = MasconBridge.Language.Default;
 
+    /// <summary>
+    /// Which game's button names the bindings page shows beside each mascon button.
+    /// Display only: it changes nothing the bridge sends. See <see cref="GameProfile"/>.
+    /// </summary>
+    public string Game { get; set; } = GameProfile.None;
+
     private static readonly JsonSerializerOptions Opts = new()
     {
         WriteIndented = true,
