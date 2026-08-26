@@ -89,6 +89,12 @@ internal sealed class CatchRow : FlowLayoutPanel
     }
 
     /// <summary>
+    /// A joystick to leave out of the scan, as "33DD:0002", or null for none. The
+    /// bridge's own mascon while it runs — see <see cref="DeviceMap.Ignoring"/>.
+    /// </summary>
+    public string? IgnoreDevice { get; set; }
+
+    /// <summary>
     /// Watches every joystick, not just the one the handle is on: the release button
     /// is as likely to be on the stick as on the throttle.
     /// </summary>
@@ -96,7 +102,7 @@ internal sealed class CatchRow : FlowLayoutPanel
     {
         if (!_learning) return;
 
-        foreach (var (id, _) in Joystick.Enumerate())
+        foreach (var (id, _) in DeviceMap.Ignoring(Joystick.Enumerate(), IgnoreDevice))
         {
             if (!Joystick.TryRead(id, out var j)) continue;
 

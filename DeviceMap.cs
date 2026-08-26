@@ -75,6 +75,30 @@ public static class DeviceMap
         return plan;
     }
 
+    /// <summary>
+    /// The joysticks worth listening to while a button is being chosen: everything
+    /// except the mascon the bridge itself created.
+    ///
+    /// While the bridge runs, that mascon is one of the joysticks Windows exposes —
+    /// which is the entire point of it — and pressing a button that is already mapped
+    /// makes it report that button too. Whichever device is enumerated first wins, and
+    /// the virtual one often is, so the binding ends up naming the bridge's own device
+    /// and either does nothing or feeds the bridge its own output.
+    ///
+    /// The exclusion is by vendor and product id, and a real ZUIKI mascon plugged in
+    /// beside the bridge shares those exactly, so it is hidden too. That is why the
+    /// caller passes null whenever the bridge is stopped: someone who owns the real
+    /// thing can still bind it, they just cannot do it while a clone of it is on the
+    /// bus. Telling the two apart is not possible from here — being indistinguishable
+    /// is what makes the bridge work at all.
+    /// </summary>
+    public static IEnumerable<(int Id, Joystick.JoyCaps Caps)> Ignoring(
+        IEnumerable<(int Id, Joystick.JoyCaps Caps)> devices, string? identity) =>
+        string.IsNullOrEmpty(identity)
+            ? devices
+            : devices.Where(d => !string.Equals(Identity(d.Caps.wMid, d.Caps.wPid),
+                                                identity, StringComparison.OrdinalIgnoreCase));
+
     /// <summary>The joysticks attached right now, by number.</summary>
     public static Dictionary<int, string> Present()
     {

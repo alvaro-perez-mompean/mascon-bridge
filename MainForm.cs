@@ -632,7 +632,8 @@ public sealed class MainForm : Form
 
     private void OnEditBindingsClick(object? sender, EventArgs e)
     {
-        using var dialog = new BindingsDialog(_cfg.Buttons, _cfg.HatDeviceId, _cfg.Game);
+        using var dialog = new BindingsDialog(
+            _cfg.Buttons, _cfg.HatDeviceId, _cfg.Game, _runner?.DeviceIdentity);
         if (dialog.ShowDialog(this) != DialogResult.OK) return;
 
         _cfg.Buttons = dialog.Buttons;
@@ -1033,6 +1034,13 @@ public sealed class MainForm : Form
         _numHyst.Enabled = on;
         _catchPower.Interactive = on;
         _catchEmergency.Interactive = on;
+
+        // Belt and braces beside Interactive, which already stops the catches from
+        // listening while the bridge runs: if that ever changes, they still must not
+        // hear the bridge's own mascon. Read from the runner rather than the
+        // configuration, so it is null the moment the bridge stops.
+        _catchPower.IgnoreDevice = _runner?.DeviceIdentity;
+        _catchEmergency.IgnoreDevice = _runner?.DeviceIdentity;
 
         // Left readable rather than greyed: the readings stay live while the bridge
         // runs, it is only picking a different axis that has to wait.

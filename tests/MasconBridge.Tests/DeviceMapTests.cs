@@ -8,8 +8,22 @@ public class DeviceMapTests
     private const string Stick = "044F:B10A";
     private const string Pedals = "06A3:0763";
 
+    private const string Mascon = "33DD:0002";
+
     private static Dictionary<int, string> Map(params (int Id, string Identity)[] entries)
         => entries.ToDictionary(e => e.Id, e => e.Identity);
+
+    /// <summary>The shape Joystick.Enumerate hands back, without needing hardware.</summary>
+    private static (int Id, Joystick.JoyCaps Caps) Device(int id, ushort vid, ushort pid)
+        => (id, new Joystick.JoyCaps { wMid = vid, wPid = pid });
+
+    private static (int Id, Joystick.JoyCaps Caps)[] Attached() =>
+        new[]
+        {
+            Device(2, 0x044F, 0xB687),  // TWCS throttle
+            Device(3, 0x044F, 0xB10A),  // T.16000M stick
+            Device(4, 0x33DD, 0x0002),  // the mascon the bridge created
+        };
 
     [Fact]
     public void Nothing_moves_when_the_numbers_still_hold_the_same_devices()
@@ -180,5 +194,72 @@ public class DeviceMapTests
         };
 
         Assert.Equal(new[] { 2, 3 }, cfg.ReferencedDevices().OrderBy(i => i).ToArray());
+    }
+
+    // --- Keeping the bridge out of its own scan ------------------------------
+
+    [Fact]
+    public void With_the_bridge_stopped_every_joystick_is_listened_to()
+    {
+        // Nothing is excluded, so somebody with a real ZUIKI mascon can bind it.
+        Assert.Equal(new[] { 2, 3, 4 },
+            DeviceMap.Ignoring(Attached(), null).Select(d => d.Id));
+
+        Assert.Equal(new[] { 2, 3, 4 },
+            DeviceMap.Ignoring(Attached(), "").Select(d => d.Id));
+    }
+
+    [Fact]
+    public void The_device_the_bridge_created_is_left_out()
+    {
+        Assert.Equal(new[] { 2, 3 },
+            DeviceMap.Ignoring(Attached(), Mascon).Select(d => d.Id));
+    }
+
+    [Fact]
+    public void The_hardware_is_still_listened_to()
+    {
+        // The point of the exclusion is that pressing a mapped button still reaches
+        // the stick it is on, rather than the bridge echoing it back.
+        var left = DeviceMap.Ignoring(Attached(), Mascon).ToList();
+
+        Assert.Contains(left, d => DeviceMap.Identity(d.Caps.wMid, d.Caps.wPid) == Stick);
+        Assert.Contains(left, d => DeviceMap.Identity(d.Caps.wMid, d.Caps.wPid) == Twcs);
+    }
+
+    [Fact]
+    public void A_real_mascon_beside_the_bridge_is_hidden_too()
+    {
+        // The known cost of matching on the ids, and the reason the caller passes
+        // null while the bridge is stopped: the two are indistinguishable, which is
+        // exactly what makes the bridge work at all.
+        var withReal = Attached().Append(Device(5, 0x33DD, 0x0002)).ToArray();
+
+        Assert.Equal(new[] { 2, 3 },
+            DeviceMap.Ignoring(withReal, Mascon).Select(d => d.Id));
+    }
+
+    [Fact]
+    public void An_identity_written_in_either_case_still_matches()
+    {
+        Assert.Equal(new[] { 2, 3 },
+            DeviceMap.Ignoring(Attached(), "33dd:0002").Select(d => d.Id));
+    }
+
+    [Fact]
+    public void A_model_that_is_not_attached_hides_nothing()
+    {
+        Assert.Equal(new[] { 2, 3, 4 },
+            DeviceMap.Ignoring(Attached(), "0F0D:00C1").Select(d => d.Id));
+    }
+
+    [Fact]
+    public void What_the_bridge_reports_is_what_the_scan_matches_on()
+    {
+        // The two sides have to agree: BridgeRunner writes the identity with
+        // DeviceMap.Identity, and Present reads the attached ones the same way.
+        var (vid, pid, _) = new Config { Model = "ZKNS-002" }.ResolveDevice();
+
+        Assert.Equal(Mascon, DeviceMap.Identity(vid, pid));
     }
 }

@@ -21,10 +21,18 @@ internal sealed class BindingsDialog : Form
     private readonly ComboBox _cboGame = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly Label _gameNote = new();
 
+    private readonly string? _ignoreDevice;
+
     private int _hatDeviceId;
     private string _game;
 
-    public BindingsDialog(IEnumerable<ButtonBinding> buttons, int hatDeviceId, string? game)
+    /// <summary>
+    /// <paramref name="ignoreDevice"/> is the mascon the bridge created, while it is
+    /// running, so that pressing an already mapped button does not bind the bridge to
+    /// itself. Null when it is stopped. See <see cref="DeviceMap.Ignoring"/>.
+    /// </summary>
+    public BindingsDialog(IEnumerable<ButtonBinding> buttons, int hatDeviceId, string? game,
+                          string? ignoreDevice = null)
     {
         // A copy: Cancel has to leave the configuration exactly as it was.
         _buttons = buttons.Select(b => new ButtonBinding
@@ -33,6 +41,7 @@ internal sealed class BindingsDialog : Form
         }).ToList();
         _hatDeviceId = hatDeviceId;
         _game = GameProfile.Normalise(game);
+        _ignoreDevice = ignoreDevice;
 
         BuildUi();
         SelectGame();
@@ -109,6 +118,7 @@ internal sealed class BindingsDialog : Form
 
     private BindingRow Row(BindingRow row)
     {
+        row.IgnoreDevice = _ignoreDevice;
         row.Captured += OnCaptured;
         row.Cleared += OnCleared;
         row.LearningStarted += OnLearningStarted;

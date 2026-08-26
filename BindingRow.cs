@@ -83,6 +83,12 @@ internal sealed class BindingRow : TableLayoutPanel
     /// <summary>The mascon button this row stands for, or "Hat".</summary>
     public string Mascon { get; }
 
+    /// <summary>
+    /// A joystick to leave out of the scan, as "33DD:0002", or null for none. The
+    /// bridge's own mascon while it runs — see <see cref="DeviceMap.Ignoring"/>.
+    /// </summary>
+    public string? IgnoreDevice { get; set; }
+
     public bool Learning => _learning;
 
     /// <summary>A physical button was pressed while this row was listening.</summary>
@@ -153,7 +159,7 @@ internal sealed class BindingRow : TableLayoutPanel
     {
         if (!_learning) return;
 
-        foreach (var (id, _) in Joystick.Enumerate())
+        foreach (var (id, _) in DeviceMap.Ignoring(Joystick.Enumerate(), IgnoreDevice))
         {
             if (!Joystick.TryRead(id, out var j)) continue;
 
