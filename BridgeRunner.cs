@@ -82,6 +82,7 @@ public sealed class BridgeRunner : IDisposable
     private Thread? _thread;
     private volatile bool _stop;
     private BridgeState _state;
+    private string? _identity;
 
     public BridgeRunner(Config cfg) => _cfg = cfg;
 
@@ -90,6 +91,16 @@ public sealed class BridgeRunner : IDisposable
     public BridgeState State
     {
         get { lock (_lock) return _state; }
+    }
+
+    /// <summary>
+    /// The vendor and product ids of the device this bridge created, written the way
+    /// <see cref="DeviceMap.Identity"/> writes them, or null while it is stopped.
+    /// The bindings page uses it to keep the bridge's own mascon out of its scan.
+    /// </summary>
+    public string? DeviceIdentity
+    {
+        get { lock (_lock) return _identity; }
     }
 
     /// <summary>
@@ -102,6 +113,10 @@ public sealed class BridgeRunner : IDisposable
 
         var (vid, pid, product) = _cfg.ResolveDevice();
         _dev = new VirtualMascon(vid, pid, product);
+
+        // What was actually created, not what the configuration says now: the two
+        // could differ later, and the scan has to skip the device that is on the bus.
+        lock (_lock) _identity = DeviceMap.Identity(vid, pid);
 
         _stop = false;
         _thread = new Thread(Loop) { IsBackground = true, Name = "mascon-bridge" };
@@ -117,7 +132,11 @@ public sealed class BridgeRunner : IDisposable
         _dev?.Dispose();
         _dev = null;
 
-        lock (_lock) _state = default;
+        lock (_lock)
+        {
+            _state = default;
+            _identity = null;
+        }
     }
 
     private void Loop()
