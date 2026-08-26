@@ -159,6 +159,57 @@
   <data name="HintEmergencyButton" xml:space="preserve">
     <value>EB は押している間だけ非常ブレーキがかかります。</value>
   </data>
+  <data name="LabelGame" xml:space="preserve">
+    <value>ゲーム:</value>
+  </data>
+  <data name="GameNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="GameJrEast" xml:space="preserve">
+    <value>JR EAST Train Simulator</value>
+  </data>
+  <data name="HintGameDefaults" xml:space="preserve">
+    <value>名前はゲームの既定値です。Steam のコントローラー設定で変更できます。</value>
+  </data>
+  <data name="FunctionAtsConfirmation" xml:space="preserve">
+    <value>ATS 確認</value>
+  </data>
+  <data name="FunctionHornLevel1" xml:space="preserve">
+    <value>警笛（レベル 1）</value>
+  </data>
+  <data name="FunctionHornLevel2" xml:space="preserve">
+    <value>警笛（レベル 2）</value>
+  </data>
+  <data name="FunctionDeadmanReset" xml:space="preserve">
+    <value>デッドマン装置リセット</value>
+  </data>
+  <data name="FunctionAlarmStop" xml:space="preserve">
+    <value>警報停止</value>
+  </data>
+  <data name="FunctionSpeedSuppression1" xml:space="preserve">
+    <value>抑速ブレーキ（1）</value>
+  </data>
+  <data name="FunctionCruiseControl" xml:space="preserve">
+    <value>定速運転／抑速ブレーキ（2）</value>
+  </data>
+  <data name="FunctionSwitchCabinView" xml:space="preserve">
+    <value>運転台表示の切替</value>
+  </data>
+  <data name="FunctionPauseGame" xml:space="preserve">
+    <value>ポーズ</value>
+  </data>
+  <data name="FunctionScreenshot" xml:space="preserve">
+    <value>スクリーンショット</value>
+  </data>
+  <data name="FunctionDoNotUse" xml:space="preserve">
+    <value>⚠ 使用しないこと</value>
+  </data>
+  <data name="FunctionNotInManual" xml:space="preserve">
+    <value>マニュアルに記載なし</value>
+  </data>
+  <data name="FunctionHat" xml:space="preserve">
+    <value>↑↓ 逆転器 · ← 連絡ブザー · → 勾配起動</value>
+  </data>
   <data name="LabelVersion" xml:space="preserve">
     <value>バージョン {0}</value>
   </data>

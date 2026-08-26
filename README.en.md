@@ -180,6 +180,11 @@ devices if you like: pressing another one adds it rather than replacing what is 
 **Clear** drops every button bound to that one. It is all still `config.json` underneath,
 and editing it by hand keeps working.
 
+The page can also say what each button does in the game. Pick **JR EAST Train Simulator**
+under **Game** and every row takes the name its manual gives it, `ZL` included — which the
+manual prints in red and tells you not to use. The names are the game's defaults and
+Steam's controller settings can move them; **None** puts the page back to bare button names.
+
 ### Language
 
 The program speaks **Japanese by default**, and English if you pick it from the

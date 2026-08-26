@@ -23,6 +23,13 @@ public static class Bindings
 
     public const string Emergency = "EB";
 
+    /// <summary>
+    /// The hat. Not a mascon button and never bound like one — a whole device is
+    /// chosen for it, not a button — but it is a row on the bindings page and a
+    /// game gives it functions, so it needs a name the two can agree on.
+    /// </summary>
+    public const string Hat = "Hat";
+
     private static bool Same(string a, string b)
         => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
 

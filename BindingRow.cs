@@ -11,6 +11,17 @@ internal sealed class BindingRow : TableLayoutPanel
 {
     private readonly Label _caption;
     private readonly Label _binding = new() { AutoSize = true, ForeColor = Theme.Muted };
+
+    // Not AutoSize: the column is a fixed width shared by every row, so the captions
+    // line up, and a label that sized itself would push past it into the next cell.
+    private readonly Label _function = new()
+    {
+        AutoSize = false,
+        Dock = DockStyle.Fill,
+        TextAlign = ContentAlignment.MiddleLeft,
+        AutoEllipsis = true,
+        ForeColor = Theme.Ink,
+    };
     private readonly FlatButton _learn = new(FlatButton.Look.Plain)
     {
         Text = Strings.ButtonLearnRelease,
@@ -38,12 +49,15 @@ internal sealed class BindingRow : TableLayoutPanel
             Anchor = AnchorStyles.Left,
         };
 
-        ColumnCount = 4;
+        ColumnCount = 5;
         AutoSize = true;
         AutoSizeMode = AutoSizeMode.GrowAndShrink;
         Dock = DockStyle.Fill;
         Margin = new Padding(0, 0, 0, LogicalToDeviceUnits(4));
         ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, LogicalToDeviceUnits(78)));
+        // Zero until a game is chosen, which is what keeps the page looking exactly
+        // as it did before there were games.
+        ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 0));
         ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
@@ -51,14 +65,16 @@ internal sealed class BindingRow : TableLayoutPanel
         _caption.Margin = new Padding(3, LogicalToDeviceUnits(8), LogicalToDeviceUnits(8), 3);
         _binding.Margin = new Padding(3, LogicalToDeviceUnits(8), LogicalToDeviceUnits(8), 3);
         _binding.Anchor = AnchorStyles.Left;
+        _function.Margin = new Padding(3, LogicalToDeviceUnits(8), LogicalToDeviceUnits(8), 3);
 
         _learn.Click += (_, _) => { if (_learning) StopLearning(); else StartLearning(); };
         _clear.Click += (_, _) => { StopLearning(); Cleared?.Invoke(this, EventArgs.Empty); };
 
         Controls.Add(_caption, 0, 0);
-        Controls.Add(_binding, 1, 0);
-        Controls.Add(_learn, 2, 0);
-        Controls.Add(_clear, 3, 0);
+        Controls.Add(_function, 1, 0);
+        Controls.Add(_binding, 2, 0);
+        Controls.Add(_learn, 3, 0);
+        Controls.Add(_clear, 4, 0);
     }
 
     /// <summary>The mascon button this row stands for, or "Hat".</summary>
@@ -86,6 +102,29 @@ internal sealed class BindingRow : TableLayoutPanel
     }
 
     private string? _bound;
+
+    /// <summary>
+    /// What this button does in the chosen game. <paramref name="textWidth"/> is how
+    /// wide the widest caption on the page is, which the caller measures because the
+    /// number is shared: every row is a table of its own, so only the same width in
+    /// all of them lines the captions up. Zero means no game, and no column at all.
+    ///
+    /// The margins are added here rather than by the caller: they belong to this
+    /// label, and a column measured without them clips the longest caption.
+    /// </summary>
+    public void ShowFunction(GameProfile.Caption? caption, int textWidth)
+    {
+        _function.Text = caption?.Text ?? string.Empty;
+        _function.ForeColor = caption?.Tone switch
+        {
+            GameProfile.Tone.Avoid => Theme.Brake,
+            GameProfile.Tone.Unknown => Theme.Muted,
+            _ => Theme.Ink,
+        };
+        ColumnStyles[1].Width = textWidth <= 0
+            ? 0
+            : textWidth + _function.Margin.Horizontal + LogicalToDeviceUnits(8);
+    }
 
     public void StopLearning()
     {

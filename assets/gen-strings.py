@@ -108,6 +108,41 @@ S = {
         "EB は押している間だけ非常ブレーキがかかります。",
     ),
 
+    # --- what the buttons do in a game -------------------------------------
+    # The captions come from the game's own manual, and are its defaults: they can
+    # be moved about in Steam's controller settings. The English wording is the
+    # manual's own, so the page and the manual read alike.
+    "LabelGame": ("Game:", "ゲーム:"),
+    "GameNone": ("None", "なし"),
+    "GameJrEast": ("JR EAST Train Simulator", "JR EAST Train Simulator"),
+    "HintGameDefaults": (
+        "The names are the game's defaults; Steam's controller settings can move them.",
+        "名前はゲームの既定値です。Steam のコントローラー設定で変更できます。",
+    ),
+
+    "FunctionAtsConfirmation": ("ATS confirmation", "ATS 確認"),
+    "FunctionHornLevel1": ("Horn (level 1)", "警笛（レベル 1）"),
+    "FunctionHornLevel2": ("Horn (level 2)", "警笛（レベル 2）"),
+    "FunctionDeadmanReset": ("Deadman switch reset", "デッドマン装置リセット"),
+    "FunctionAlarmStop": ("Alarm stop", "警報停止"),
+    "FunctionSpeedSuppression1": ("Speed suppression (1)", "抑速ブレーキ（1）"),
+    "FunctionCruiseControl": (
+        "Cruise control / speed suppression (2)",
+        "定速運転／抑速ブレーキ（2）",
+    ),
+    "FunctionSwitchCabinView": ("Switch cabin view", "運転台表示の切替"),
+    "FunctionPauseGame": ("Pause game", "ポーズ"),
+    "FunctionScreenshot": ("Screenshot", "スクリーンショット"),
+    "FunctionDoNotUse": (
+        "⚠ Do not use",
+        "⚠ 使用しないこと",
+    ),
+    "FunctionNotInManual": ("not in the manual", "マニュアルに記載なし"),
+    "FunctionHat": (
+        "↑↓ reverser · ← buzzer · → hill start",
+        "↑↓ 逆転器 · ← 連絡ブザー · → 勾配起動",
+    ),
+
     "LabelVersion": ("version {0}", "バージョン {0}"),
     "LinkUpdateAvailable": ("version {0} is available", "バージョン {0} が公開されています"),
     "CheckForUpdates": ("Check for updates", "更新を確認する"),
